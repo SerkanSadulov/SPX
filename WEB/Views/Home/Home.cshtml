@@ -1,0 +1,254 @@
+﻿@using WEB.ViewModels
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelper
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+    var profileUrl = Url.Action("Profile", "Home");
+    var uploadUrl = Url.Action("UploadProfilePicture", "Users");
+    var loginUrl = Url.Action("LogIn", "Home");
+}
+
+<link rel="stylesheet" href="~/css/Deals.css">
+<link rel="stylesheet" href="~/css/Home.css" />
+
+<div class="home-page">
+    <section class="hero-custom-height d-flex justify-content-center align-items-center text-white text-center position-relative"
+             style="background-image: url('/img/HeroImage.png'); background-size: cover; background-position: center;">
+        <div class="overlay"></div>
+        <div class="container position-relative">
+            <h1 class="display-4 fw-bold">Намерете надеждни услуги и продукти на достъпни цени!</h1>
+            <p class="lead">От домашни ремонти до професионални консултации – ние сме насреща!</p>
+            <a href="#rated">  <button class="buttons">
+                <span class="button_lg">
+                    <span class="button_sl"></span>
+                    <span class="button_text">Виж повече!</span>
+                </span>
+                </button>
+            </a>
+        </div>
+    </section>
+
+    <section class="container my-5">
+        <h2 class="text-center mb-4">Най-посещавани категории</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4 d-flex">
+                <div class="card h-100 d-flex flex-column">
+                    <img src="~/img/Automotive.png" class="card-img-top" alt="Automotive">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title text-center">Автомобилни</h3>
+                        <a href="/Services/ServicesByCategory?categoryID=62d9ffa7-e21c-4168-8a87-44ab2a10e523&categoryName=Автомобилни" class="btn btn-primary mt-auto align-self-center">Посети</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 d-flex">
+                <div class="card h-100 d-flex flex-column">
+                    <img src="~/img/Electronics.png" class="card-img-top" alt="Professional Services">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title text-center">Електроника</h3>
+                        <a href="/Services/ServicesByCategory?categoryID=9e49a003-2886-488e-bc09-a8b11f7787e5&categoryName=Electronics" class="btn btn-primary mt-auto align-self-center">Посети</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4 d-flex">
+                <div class="card h-100 d-flex flex-column">
+                    <img src="~/img/Clothes.png" class="card-img-top" alt="Clothes">
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="card-title text-center">Дрехи</h3>
+                        <a href="/Services/ServicesByCategory?categoryID=03028ec4-b13a-46e3-b2ea-1423cccb5052&categoryName=Clothes" class="btn btn-primary mt-auto align-self-center">Посети</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <div class="container p-3" id="rated">
+        <h1 class="text-center mb-2">Най-високо оценени обяви!</h1>
+
+        <div class="row row-cols-12 row-cols-md-3 row-cols-lg-4 g-4" id="services-container">
+        </div>
+    </div>
+</div>
+<div class="text-center my-4">
+    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">
+        Политика за поверителност
+    </button>
+</div>
+
+<div class="modal fade" id="privacyPolicyModal" tabindex="-1" aria-labelledby="privacyPolicyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyPolicyModalLabel">Политика за поверителност</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Затвори"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <p>В <strong>SPX.runasp.net</strong> („ние“, „нас“, „нашият сайт“) се ангажираме да защитаваме Вашата поверителност и да се грижим личната Ви информация да бъде обработвана по сигурен и отговорен начин. Настоящата Политика за поверителност описва как събираме, използваме и съхраняваме Вашите лични данни, когато използвате нашия уебсайт.</p>
+                <p>С достъпа и използването на <strong>SPX.runasp.net</strong> Вие се съгласявате с условията на тази Политика за поверителност.</p>
+
+                <h5>1. Какви данни събираме</h5>
+                <strong>А. Лични данни</strong><br />
+                При регистрация или използване на определени функционалности на сайта, може да Ви бъде поискано да предоставите следната информация:
+                <ul>
+                    <li>Име и фамилия</li>
+                    <li>Имейл адрес</li>
+                    <li>Телефонен номер</li>
+                    <li>Адрес</li>
+                    <li>Снимки на продукти или услуги</li>
+                    <li>Други идентификационни данни, доброволно предоставени от Вас</li>
+                </ul>
+
+                <strong>Б. Данни за употреба</strong><br />
+                Автоматично можем да събираме информация за това как се използва сайтът, включително:
+                <ul>
+                    <li>IP адрес</li>
+                    <li>Тип и версия на браузъра</li>
+                    <li>Посетени страници</li>
+                    <li>Час и дата на посещенията</li>
+                    <li>Време, прекарано на сайта</li>
+                    <li>Технически диагностични данни</li>
+                </ul>
+
+                <h5>2. За какво използваме Вашите данни</h5>
+                <p>Събраната информация се използва за следните цели:</p>
+                <ul>
+                    <li>За управление и поддръжка на сайта</li>
+                    <li>За създаване и администриране на потребителски профили</li>
+                    <li>За публикуване на обяви, услуги и изображения</li>
+                    <li>За комуникация с Вас (вкл. техническа или потребителска поддръжка)</li>
+                    <li>За анализ и подобряване на функционалността и сигурността</li>
+                    <li>За спазване на законови задължения и защита от злоупотреби</li>
+                </ul>
+
+                <h5>3. Споделяне на лични данни</h5>
+                <p>Ние <strong>не продаваме и не отдаваме под наем</strong> Вашите лични данни на трети страни.</p>
+                <p>Данните Ви могат да бъдат споделяни само в следните случаи:</p>
+                <ul>
+                    <li><strong>С доставчици на услуги</strong> – трети страни, които подпомагат функционирането на сайта (например хостинг, ИТ поддръжка)</li>
+                    <li><strong>При законово изискване</strong> – ако сме задължени по закон или по искане на държавен орган (напр. съд, прокуратура)</li>
+                </ul>
+
+                <h5>4. Бисквитки и технологии за проследяване</h5>
+                <p>Нашият сайт използва <strong>бисквитки (cookies)</strong> с цел подобряване на работата на сайта, анализ на трафика и запазване на потребителски настройки.</p>
+                <p>Можете да управлявате бисквитките чрез настройките на Вашия браузър. Отказът от бисквитки може да повлияе на някои функции на сайта.</p>
+
+                <h5>5. Сигурност на данните</h5>
+                <p>Ние прилагаме <strong>адекватни технически и организационни мерки</strong> за защита на личните Ви данни. Въпреки това, трябва да знаете, че <strong>никой метод за предаване или съхранение на информация в интернет не е 100% сигурен</strong>.</p>
+
+                <h5>6. Вашите права</h5>
+                <p>Съгласно Общия регламент за защита на данните (GDPR), Вие имате право да:</p>
+                <ul>
+                    <li>Достъпвате своите лични данни</li>
+                    <li>Искате корекция на неточни или непълни данни</li>
+                    <li>Искате изтриване („правото да бъдеш забравен“)</li>
+                    <li>Ограничите или възразите срещу обработка</li>
+                    <li>Подадете жалба до Комисията за защита на личните данни</li>
+                </ul>
+
+                <h5>7. Промени в тази политика</h5>
+                <p>Запазваме си правото да променяме настоящата Политика за поверителност. Всички промени ще бъдат публикувани тук и ще влязат в сила от момента на публикуване.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchServicesByRating(); 
+    });
+
+    async function fetchServicesByRating() {
+        let servicesURL = "@Model.ServicesEndpoint";
+        const allServices = [];  
+
+        try {
+            const response = await fetch(`${servicesURL}RatingsEntity/HighestRated`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch services");
+            }
+
+            const data = await response.json();
+
+            for (const rating of data) {
+                const service = await fetchServiceByID(rating.serviceID);
+                allServices.push(service);  
+            }
+
+            displayServices(allServices);
+
+        } catch (error) {
+            console.error("Error fetching services", error);
+        }
+    }
+
+    async function fetchServiceByID(serviceID) {
+        const serviceDetailsURL = "@Model.ServicesEndpoint"; 
+        try {
+            const response = await fetch(`${serviceDetailsURL}Services/${serviceID}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch service with ID ${serviceID}`);
+            }
+
+            const serviceData = await response.json();
+            return serviceData; 
+        } catch (error) {
+            console.error(`Error fetching service ${serviceID}`, error);
+            return null; 
+        }
+    }
+
+    function displayServices(data) {
+        const container = document.getElementById("services-container");
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+            container.innerHTML = `
+                    <div class="col-12 text-center mt-5">
+                        <h3 class="text-muted">Все още няма оценени обяви!</h3>
+                    </div>`;
+        } else {
+            data.forEach((service) => {
+                if (service) { 
+                    container.innerHTML += `
+                            <div class="col text-white">
+                                    <div class="service-card shadow-lg rounded p-3 text-center bg-dark bg-gradient d-flex flex-column" style="cursor: pointer; height: 100%;">
+                                    <img src="${service.images && service.images.split(",")[0].trim() !== "" ? "/serviceImages/" + service.images.split(",")[0].trim() : "https://picsum.photos/250"}" alt="${service.serviceName}" class="img-fluid mb-3" style="max-width: 100%; cursor: pointer" onclick="redirectToServicePage('${service.serviceID}')" />
+                                    <div class="service-name mb-2 flex-grow-1">
+                                        <h5>${service.serviceName}</h5>
+                                        <span>Награда за качество! <i class="fas fa-star" style="color:gold"></i></span>
+                                    </div>
+                                    <div class="service-price text-white">
+                                        <p><strong>Цена: </strong>${service.price}лв.</p>
+                                    </div>
+                                </div>
+                            </div>`;
+                }
+            });
+        }
+    }
+
+    function redirectToServicePage(serviceID) {
+        const url = '@Url.Action("Service", "Services")' + "?serviceID=" + encodeURIComponent(serviceID);
+        window.location.href = url;
+    }
+
+</script>

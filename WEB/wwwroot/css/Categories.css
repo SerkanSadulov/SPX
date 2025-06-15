@@ -1,0 +1,43 @@
+﻿body {
+    font-family: 'Nunito', sans-serif;
+}
+
+.card {
+    transition: transform 0.3s ease-in-out;
+}
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+.card-img-top {
+    transition: transform 0.3s; 
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card-body-scale {
+    min-height: 70px !important;
+    max-height: 70px !important;
+} 
+
+#loading-spinner-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#loading-spinner {
+    width: 5rem;
+    height: 5rem;
+}
+
+

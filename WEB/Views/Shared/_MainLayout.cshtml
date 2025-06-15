@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="bg" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SPX - @ViewData["Title"]</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="~/img/SPXLogo.png" asp-append-version="true" />
+
+    <!-- jQuery -->
+    <script src="~/lib/jquery/jquery-3.7.1.min.js" asp-append-version="true"></script>
+
+    <!-- Quill WYSIWYG -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="~/lib/FontAwesome/css/all.min.css" asp-append-version="true" />
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="~/lib/Bootstrap/css/bootstrap.min.css" asp-append-version="true" />
+    <script src="~/lib/Bootstrap/js/bootstrap.bundle.js" asp-append-version="true"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Toastr -->
+    <link rel="stylesheet" href="~/lib/Toastr/toastr.min.css" asp-append-version="true" />
+    <script src="~/lib/Toastr/toastr.min.js" asp-append-version="true"></script>
+
+    <!-- Site -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <script>
+        if (getCookie("theme") == "") {
+            setCookie("theme", "light", 365);
+            setTheme(getCookie("theme"));
+        }
+        else
+            setTheme(getCookie("theme"));
+    </script>
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: black !important; padding: 0.5rem 1rem;">
+        <div class="container-fluid d-flex align-items-center">
+            <a class="navbar-brand d-flex align-items-center me-3" onclick="window.location.href='/Home/Home'" style="cursor: pointer">
+                <img src="~/img/SPXLogo.png" alt="Logo" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;" />
+                <span class="text-light mt-1" style="font-weight: bold;">
+                    S&P eXchange
+                </span>
+            </a>
+
+            <div class="d-none d-lg-block position-relative">
+                <div class="dropdown">
+                    <input type="text" id="searchBar" class="form-control" placeholder="Търсене..." aria-expanded="false">
+                    <ul id="searchResults" class="dropdown-menu overflow-auto" aria-labelledby="searchBar" style="max-height: 300px; cursor:pointer"></ul>
+                </div>
+            </div>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto text-center" id="navList">
+                    <li class="nav-item d-lg-none my-2">
+                        <div class="dropdown">
+                            <input type="text" id="searchBarMobile" class="form-control" placeholder="Търсене..." aria-expanded="false">
+                            <ul id="searchResultsMobile" class="dropdown-menu overflow-auto" aria-labelledby="searchBarMobile" style="max-height: 300px; cursor:pointer"></ul>
+                        </div>
+                    </li>
+                    <li class="nav-item my-2">
+                        <button type="button" class="btn btn-outline-light ms-lg-3 text-nowrap" style="height: 2.5rem;" onclick="window.location.href='/Categories/Categories'">Категории</button>
+                    </li>
+
+                    <li class="nav-item my-2 d-none" id="messagesBtnNavbar">
+                        <button type="button" class="btn btn-outline-light ms-lg-3 text-nowrap" style="height: 2.5rem;" onclick="window.location.href='/Home/Profile#messagesTab'">Съобщения</button>
+                    </li>
+
+                    <li class="nav-item my-2 d-none" id="add-service-button">
+                        <button type="button" class="btn btn-outline-light ms-lg-3 text-nowrap" style="height: 2.5rem;" onclick="window.location.href='/Services/AddService'">Добави обява</button>
+                    </li>
+                    <li class="nav-item my-2" id="nav-user">
+                    <li class="nav-item dropdown mt-2">
+                        <a href="#" id="notificationBell" class="nav-link position-relative d-none" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell" style="font-size: 1.5rem; color: white;"></i>
+                            <span id="notificationCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"></span>
+                        </a>
+                        <ul id="notificationsDropdown" class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="notificationBell" style="width: 300px;">
+                            <li class="dropdown-header">Последни съобщения</li>
+                            <li id="noNewMessages" class="dropdown-item"></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item my-2" id="change-theme-button">
+                        <button type="button" class="btn btn-outline-light ms-lg-3 text-nowrap" style="height: 2.5rem;"> <i class="fa-solid fa-circle-half-stroke"></i></button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid p-0 m-0">
+        @RenderBody()
+    </div>
+
+    <script>
+        window.servicesEndpoint = "@Model.ServicesEndpoint";
+
+        function handleSearchInput(inputId, resultsId) {
+            const inputElement = document.getElementById(inputId);
+            const resultsContainer = document.getElementById(resultsId);
+
+            if (inputElement && resultsContainer) {
+                inputElement.addEventListener('input', function () {
+                    const query = this.value.trim();
+                    const servicesEndpoint = "@Model.ServicesEndpoint";
+
+                    if (query.length > 0) {
+                        fetch(`${servicesEndpoint}Services/Search?serviceName=${encodeURIComponent(query)}`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                resultsContainer.innerHTML = '';
+
+                                if (data.length > 0) {
+                                    data.slice(0, 5).forEach(service => {
+                                        fetch(`${servicesEndpoint}Categories/${service.categoryID}`)
+                                            .then(response => response.json())
+                                            .then(categoryData => {
+                                                const resultItem = document.createElement('li');
+                                                resultItem.classList.add('dropdown-item');
+                                                resultItem.classList.add('text-nowrap');
+                                                resultItem.innerHTML = `${service.serviceName}<br>Category: ${categoryData.categoryName}`;
+                                                resultItem.onclick = function () { redirectToServicePage(service.serviceID); };
+                                                resultsContainer.appendChild(resultItem);
+                                            })
+                                            .catch(error => console.error('Error fetching category data:', error));
+                                    });
+                                    resultsContainer.style.display = 'block';
+                                } else {
+                                    resultsContainer.style.display = 'none';
+                                }
+                            })
+                            .catch(error => console.error('Error fetching data:', error));
+                    } else {
+                        resultsContainer.style.display = 'none';
+                    }
+                });
+            }
+        }
+
+        const themeButton = document.getElementById('change-theme-button');
+        themeButton.addEventListener('click', () => {
+            if (getCookie("theme") === "light") {
+                setCookie("theme", "dark", 365);
+                setTheme("dark");
+            } else {
+                setCookie("theme", "light", 365);
+                setTheme("light");
+            }
+        });
+
+
+        function redirectToServicePage(serviceID) {
+            const url = '@Url.Action("Service", "Services")' + "?serviceID=" + encodeURIComponent(serviceID);
+            window.location.href = url;
+        }
+
+        handleSearchInput('searchBar', 'searchResults');
+        handleSearchInput('searchBarMobile', 'searchResultsMobile');
+
+        document.addEventListener('click', function (event) {
+            const searchResults = document.getElementById('searchResults');
+            const searchBar = document.getElementById('searchBar');
+            const searchResultsMobile = document.getElementById('searchResultsMobile');
+            const searchBarMobile = document.getElementById('searchBarMobile');
+
+            const isClickInside =
+                (searchResults && searchResults.contains(event.target)) ||
+                (searchBar && searchBar.contains(event.target)) ||
+                (searchResultsMobile && searchResultsMobile.contains(event.target)) ||
+                (searchBarMobile && searchBarMobile.contains(event.target));
+
+            if (!isClickInside) {
+                if (searchResults) searchResults.style.display = 'none';
+                if (searchResultsMobile) searchResultsMobile.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

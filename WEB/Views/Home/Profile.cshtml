@@ -1,0 +1,1714 @@
+﻿@using WEB.ViewModels
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelper
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Profile";
+    var profileUrl = Url.Action("Profile", "Home");
+    var uploadUrl = Url.Action("UploadProfilePicture", "Users");
+    var loginUrl = Url.Action("LogIn", "Home");
+}
+<link rel="stylesheet" href="~/css/Profile.css">
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<div class="container-fluid">
+    <div class="row ">
+        <div class="col-12 col-md-1 p-0 m-0 d-flex flex-column flex-grow-1 shadow-lg  shadow bg-dark text-white align-items-center">
+            <div class="sidebar p-3 m-0 text-center ">
+                <ul class="nav nav-pills flex-row flex-md-column" id="profileTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active text-dark fw-bolder text-white d-flex flex-md-column" href="#" id="myDetailsTabSideBar" data-tab="myDetails">
+                            <i class="fas fa-user"></i>
+                            <span class="d-none d-md-inline">Детайли</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark fw-bolder text-white d-flex flex-md-column" id="messagesTabSideBar"  href="#" data-tab="messages">
+                            <i class="fas fa-envelope"></i>
+                            <span class="d-none d-md-inline">Съобщения</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark fw-bolder text-white d-flex flex-md-column" href="#" data-tab="favorites">
+                            <i class="fas fa-star"></i>
+                            <span class="d-none d-md-inline">Любими</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark fw-bolder text-white d-flex flex-md-column" href="#" data-tab="history">
+                            <i class="fas fa-history"></i>
+                            <span class="d-none d-md-inline">История</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-10 p-0 m-0 d-flex flex-column flex-grow-1 " style="min-height:calc(100vh - 76px);">
+            <div class="p-3">
+                <div class="card-body m-2" id="tabContent">
+                    <div id="myDetails"> 
+                        <div class="row mb-4 bg-dark text-white p-3 rounded-3">
+                            <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
+                                <div class="avatar-wrapper" style="cursor: pointer;">
+                                    <img id="selectedAvatar" src="/profilePictures/default.png"
+                                         alt="Profile Picture" class="rounded-circle img-fluid" onclick="document.getElementById('profilePicture').click();" />
+                                    <input type="file" id="profilePicture" onchange="handleImageSelection(event)" class="d-none" accept=".jpg, .jpeg, .png"/>
+                                    <div class="overlay pe-none" >
+                                        <i class="fa-solid fa-plus text-white"></i>
+                                    </div>
+                                </div>
+                                <button type="button" id="changeImageButton" class="btn btn-primary d-none mt-3" onclick="uploadProfilePicture()">Запази</button>
+                            </div>
+
+                            <div class="col-md-8">
+
+                                <form id="userForm">
+                                    <div class="row">
+
+                                        <div class="col-md-12 mt-2 fs-5">
+                                            <div class="row align-items-center">
+                                                <label for="username" class="form-label col-md-3 col-form-label text-md-end">
+                                                    <i class="fas fa-user"></i> Потребителско име
+                                                </label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" id="username" value="Your Name" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12 mt-2 fs-5">
+                                            <div class="row align-items-center">
+                                                <label for="password" class="form-label col-md-3 col-form-label text-md-end">
+                                                    <i class="fas fa-lock"></i> Парола
+                                                </label>
+                                                <div class="col-md-9">
+                                                    <input type="password" class="form-control" id="password" placeholder="*********" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12 mt-2 fs-5">
+                                            <div class="row align-items-center">
+                                                <label for="email" class="form-label col-md-3 col-form-label text-md-end">
+                                                    <i class="fas fa-envelope"></i> Имейл
+                                                </label>
+                                                <div class="col-md-9">
+                                                    <input type="email" class="form-control" id="email" value="placeholder@gmail.com" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12 mt-2 fs-5">
+                                            <div class="row align-items-center">
+                                                <label for="userType" class="form-label col-md-3 col-form-label text-md-end  text-md-start">
+                                                    <i class="fas fa-users"></i> Тип на профила
+                                                </label>
+                                                <div class="col-md-9">
+                                                    <input type="text" class="form-control" id="userType" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12 mt-2 fs-5">
+                                            <div class="row align-items-center">
+                                                <label for="phoneNumber" class="form-label col-md-3 col-form-label text-md-end  text-md-start">
+                                                    <i class="fas fa-phone"></i> Телефонен номер
+                                                </label>
+                                                <div class="col-md-9">
+                                                    <input type="text" name="phoneNumber" class="form-control" id="phoneNumber" value="" readonly>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
+                            <div class="d-flex justify-content-md-end justify-content-center mt-4">
+                                <button type="button" class="btn btn-danger me-2" onclick="redirect()">
+                                    <i class="fas fa-trash-alt"></i> Изтрий профилът
+                                </button>
+                                                                <button type="button" class="btn btn-primary d-none me-2" id="saveButton" onclick="saveChanges()">
+                                    <i class="fas fa-save"></i> Запази
+                                </button>
+                                <button type="button" class="btn btn-success me-2" id="editButton" onclick="toggleEdit()">
+                                    <i class="fas fa-pen"></i> Редактирай
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="logoutUser()">
+                                    <i class="fas fa-sign-out-alt"></i> Излизане
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h4>Изпълняващи се поръчки</h4>
+                            <div class="table-responsive">
+                                <table class="table table-dark">
+                                    <thead>
+                                        <tr>
+                                            <th>Потребител</th>
+                                            <th>Дата</th>
+                                            <th>Име на обявата</th>
+                                            <th>Цена</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ordersTableBody">
+                                        <tr>
+                                            <td id="userId_1"></td> 
+                                            <td id="orderDate_1"></td> 
+                                            <td id="orderPrice_1"></td> 
+                                            <td>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="messages" class="d-none">
+                        <h3 class="fw-bold">Съобщение</h3>
+                        <table id="messagedPeopleTable" class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th class="fw-bold">Име</th>
+                                    <th class="fw-bold">Съобщение</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="favorites" class="d-none">
+                        <h3 class="fw-bold">Любими</h3>
+                        <div class="table-responsive">
+                            <table class="table table-dark text-white table-hover mt-2 ">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="bg-dark text-white">Име на обява</th>
+                                        <th scope="col" class="bg-dark text-white">Добавено в любими на</th>
+                                        <th scope="col" class="bg-dark text-white">Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="favoritesTableBody" >
+                                </tbody>
+                            </table>
+                            <div id="favoritesLoader" class="text-center d-none">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Зареждане...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p id="noFavoritesMessage" class="text-center d-none">Няма любими!</p>
+                    </div>
+                    <div id="history" class="d-none">
+                        <h3 class="fw-bold">История на поръчките</h3>
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Потребител</th>
+                                        <th>Дата</th>
+                                        <th>Име на обява</th>
+                                        <th>Цена</th>
+                                        <th>Статус</th>
+                                        <th id="clientRate">Оценка</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="noHistoryMessage" class="text-center d-none">Няма стари поръчки!</p>
+                    </div>
+                    <div id="providerServices" class="d-none">
+                        <h3 class="fw-bold">Моите обяви</h3>
+                        <div class="table-responsive bg-dark text-white">
+                            <table class="table table-dark text-white table-hover mt-2">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="bg-dark text-white">Име на обява</th>
+                                        <th scope="col" class="bg-dark text-white">Телефон за връзка</th>
+                                        <th scope="col" class="bg-dark text-white">Създадена на</th>
+                                        <th scope="col" class="bg-dark text-white">Цена</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="servicesTableBody">
+                                </tbody>
+                            </table>
+                            <div id="servicesLoader" class="text-center d-none">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Зареждане...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p id="noServicesMessage" class="text-center text-warning d-none">Няма намерени обяви!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="expandedServiceView" class="d-none position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75">
+    <div class="card shadow-lg border-0 vw-100 w-md-75">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 id="serviceTitle" class="mb-0">Service Details</h5>
+            <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="closeServiceView()"></button>
+        </div>
+        <div class="card-body">
+            <form id="serviceForm" class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="mb-3">
+                        <label for="serviceName" class="form-label">Име на обявата</label>
+                        <input type="text" class="form-control" id="serviceName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="serviceDescription" class="form-label">Описание</label>
+                        <div id="serviceDescription" style="height: 150px; border: 1px solid #ced4da;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="servicePrice" class="form-label">Price</label>
+                        <input type="text" class="form-control" id="servicePrice">
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div id="serviceImages" class="row g-2"></div>
+                    <div id="imagePreviewContainer" class="row g-2 mt-3"></div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <input type="file" id="imageInput" class="d-none" multiple accept="image/*" onchange="handleImageUpload(event)">
+                    <button type="button" class="btn btn-primary" id="saveServiceButton" onclick="saveServiceChanges()"><i class="fas fa-save"></i> Запази</button>
+                    <button type="button" class="btn btn-success" onclick="document.getElementById('imageInput').click()"><i class="fas fa-plus"></i> Добави снимка</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteService()"><i class="fas fa-trash"></i> Изтрий</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeServiceView()"><i class="fas fa-times"></i> Затвори</button>
+                    
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div id="changesSavedAlert" class="alert alert-success alert-dismissible fade d-none" role="alert">
+    Обявата е обновена успешно!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div id="invalidFileTypeAlert" class="alert alert-warning alert-dismissible fade d-none" role="alert">
+    Мoля изберете снимка!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div id="uploadSuccessAlert" class="alert alert-success alert-dismissible fade d-none" role="alert">
+   Профилът е обновен успешно!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div id="deleteSuccessAlert" class="alert alert-warning alert-dismissible fade d-none" role="alert">
+    Обявата е изтрита!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div id="uploadErrorPasswordAlert" class="alert alert-danger alert-dismissible fade d-none" role="alert">
+    Моля въведете паролата си за да запазите промените!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div id="uploadErrorAlert" class="alert alert-danger alert-dismissible fade d-none" role="alert">
+    Възникна грешка при обновяването на профилът!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+
+
+<div class="modal fade" id="deleteServiceModal" tabindex="-1" aria-labelledby="deleteServiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteServiceModalLabel">Потвърждаване на изтриването</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Сигурни ли сте че искате да изтриете обявата?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Изтрий</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white" style="max-height: 700px; height: 100%;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="chatModalLabel">Чат</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex flex-column" style="height: calc(100vh - 150px); max-height: calc(700px - 80px);">
+                <div id="chatContainer" class="flex-grow-1 overflow-auto border border-secondary rounded p-3"></div>
+                <div class="mt-3 d-flex">
+                    <input type="text" id="messageInput" class="form-control me-2 bg-white text-black border-white" placeholder="Напишете съобщение...">
+                    <button type="button" class="btn btn-primary" id="sendButton">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal  fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+    <div class="modal-dialog bg-dark text-white">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header text-white">
+                <h5 class="modal-title" id="ratingModalLabel">Оценете обявата</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="rating-stars mb-3">
+                    <span class="star" data-value="1">&#9733;</span>
+                    <span class="star" data-value="2">&#9733;</span>
+                    <span class="star" data-value="3">&#9733;</span>
+                    <span class="star" data-value="4">&#9733;</span>
+                    <span class="star" data-value="5">&#9733;</span>
+                </div>
+                <div class="mb-3">
+                    <label for="ratingComment" class="form-label">Оставете коментар</label>
+                    <textarea class="form-control" id="ratingComment" rows="3" placeholder="Write your feedback..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+                <button type="button" class="btn btn-primary" onclick="submitRating()">Изпрати</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const loggedInData = getCookie("LoggedInData");
+        const JWTToken = getCookie("JWTToken");
+
+
+        if (!loggedInData || loggedInData.length === 0) {
+            window.location.href = "/Home/LogIn";
+            return;
+        }
+
+        if (window.location.hash === "#messagesTab") {
+            let messageTab = document.getElementById("messages");
+            let profileTab = document.getElementById("myDetails");
+            let sideMessageTab = document.getElementById("messagesTabSideBar");
+            let sideMyDetailsTab = document.getElementById("myDetailsTabSideBar");
+            messageTab.classList.remove("d-none");
+            sideMessageTab.classList.add("active");
+            sideMyDetailsTab.classList.remove("active");
+            profileTab.classList.add("d-none");
+            fetchMessagedPeople();
+        }
+
+        if (loggedInData.length != 0) {
+            
+            const userData = JSON.parse(loggedInData);
+            const userId = userData.userId; 
+
+            document.getElementById("username").value = userData.username;
+            document.getElementById("email").value = userData.email;
+            document.getElementById("userType").value = userData.userType;
+            document.getElementById("phoneNumber").value = userData.phoneNumber;
+
+            document.getElementById("selectedAvatar").src = `/profilePictures/${userData.profilePicture || 'default.png'}`;
+            document.getElementById("selectedAvatar").onerror = function () {
+                this.src = '/profilePictures/default.png';
+            };
+
+            fetchUserOrders(userId, userData.userType);
+
+            window.loginUrl = "@loginUrl";
+            
+            if (userData.userType === "Provider") {
+                const providerTab = document.createElement("li");
+                providerTab.className = "nav-item";
+                providerTab.innerHTML =
+                    '<a class="nav-link text-white fw-bolder d-flex flex-md-column" href="#" data-tab="providerServices"><i class="fas fa-store"></i> <span class="d-none d-md-inline">Обяви</span></a>';
+                document.getElementById("profileTabs").appendChild(providerTab);
+                providerTab.querySelector("a").addEventListener("click", function (e) {
+                    e.preventDefault();
+                    document
+                        .querySelectorAll("#profileTabs .nav-link")
+                        .forEach((link) => link.classList.remove("active"));
+                    this.classList.add("active");
+
+                    document
+                        .querySelectorAll("#tabContent > div")
+                        .forEach((content) => content.classList.add("d-none"));
+                    const activeTabContent = document.getElementById(this.getAttribute("data-tab"));
+                    activeTabContent.classList.remove("d-none");
+                });
+            }
+        } else {
+            document.getElementById("infoHead").style.display = "block";
+        }
+
+        document.querySelector("#messagedPeopleTable").addEventListener("click", function (e) {
+            if (e.target.classList.contains("view-messages")) {
+                const receiverId = e.target.dataset.id;
+                const receiverName = e.target.closest("tr").querySelector("td:first-child").textContent;
+                openChatModal(receiverId, receiverName);
+            }
+        });
+
+        document.querySelectorAll("#profileTabs .nav-link").forEach((tab) => {
+            tab.addEventListener("click", function (e) {
+                e.preventDefault();
+                document
+                    .querySelectorAll("#profileTabs .nav-link")
+                    .forEach((link) => link.classList.remove("active"));
+                tab.classList.add("active");
+
+                document
+                    .querySelectorAll("#tabContent > div")
+                    .forEach((content) => content.classList.add("d-none"));
+                const activeTabContent = document.getElementById(tab.getAttribute("data-tab"));
+                activeTabContent.classList.remove("d-none");
+
+                if (tab.getAttribute("data-tab") === "providerServices") {
+                    fetchProviderServices();
+                } else if (tab.getAttribute("data-tab") === "favorites") {
+                    fetchFavorites();
+                } else if (tab.getAttribute("data-tab") == "messages") {
+                    fetchMessagedPeople();
+                    setInterval(fetchMessagedPeople, 120000);
+                } else if (tab.getAttribute("data-tab") === "history") {
+                    const userData = JSON.parse(getCookie("LoggedInData"));
+                    fetchUserOrders(userData.userId, userData.userType, true);
+                }
+            });
+        });
+
+        function updateStarRating(rating) {
+            document.querySelectorAll('.rating-stars .star').forEach(star => {
+                if (parseInt(star.getAttribute('data-value')) <= rating) {
+                    star.classList.add('selected');
+                } else {
+                    star.classList.remove('selected');
+                }
+            });
+        }
+
+        function openRatingModal(orderID) {
+            selectedRating = 0;  
+            document.getElementById('ratingComment').value = ""; 
+            updateStarRating(0); 
+            document.getElementById('ratingModal').setAttribute('data-order-id', orderID); 
+            var ratingModal = new bootstrap.Modal(document.getElementById('ratingModal'));
+            ratingModal.show();  
+        }
+
+        document.getElementById('ratingModal').addEventListener('shown.bs.modal', function () {
+            document.querySelectorAll('.rating-stars .star').forEach(star => {
+                star.addEventListener('click', function () {
+                    selectedRating = this.getAttribute('data-value');
+                    updateStarRating(selectedRating); 
+                });
+            });
+        });
+
+        window.openRatingModal = openRatingModal;
+    });
+
+    let selectedRating = 0;
+
+    function submitRating() {
+        const orderID = document.getElementById('ratingModal').getAttribute('data-order-id');
+        const comment = document.getElementById('ratingComment').value;
+
+        if (selectedRating === 0) {
+            alert("Моля изберете оценка преди изпращане!");
+            return;
+        }
+
+        const orderRow = document.querySelector(`[data-order-id="${orderID}"]`).closest('tr');
+        const serviceID = orderRow.querySelector('td[data-service-id]').getAttribute('data-service-id');
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+
+        const loggedInData = getCookie("LoggedInData");
+        const clientID = JSON.parse(loggedInData).userId;
+
+        const ratingData = {
+            RatingID: "@Guid.NewGuid()",
+            serviceID: serviceID,
+            clientID: clientID,
+            rating: selectedRating,
+            comment: comment,
+            createdOn: new Date().toISOString() 
+        };
+
+        fetch(`${servicesEndpoint}RatingsEntity`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(ratingData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(`Error ${response.status}: ${errData.message || 'Unknown error'}`);
+                    });
+                }
+                var ratingModal = bootstrap.Modal.getInstance(document.getElementById('ratingModal'));
+                ratingModal.hide(); 
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {   
+                    
+                } else {
+                   
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred: ' + error.message);
+            });
+    }
+
+    function fetchUserOrders(userId, userType, isHistory) {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        const orderUserId = userType === "Provider" ? `ByProvider/${userId}` : `ByUser/${userId}`;
+        const clientRateHeader = document.getElementById("clientRate");
+        const JWTToken = getCookie("JWTToken");
+
+        if (userType === "Client") {
+            clientRateHeader.classList.remove("d-none");
+        } else {
+            clientRateHeader.classList.add("d-none");
+        }
+
+        fetch(`${servicesEndpoint}OngoingOrders/${orderUserId}`)
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        ordersTableBody.innerHTML = "<tr><td colspan='5'>Няма поръчки в ход!</td></tr>"
+                        throw new Error('Няма изпълняващи се поръчки');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(orders => {
+                const ordersTableBody = document.getElementById(isHistory ? "historyTableBody" : "ordersTableBody");
+                ordersTableBody.innerHTML = "";
+
+                if (orders.length === 0) {
+                    handleNoOrders(isHistory, ordersTableBody);
+                    return;
+                }
+
+                const userFetchPromises = orders.map(order => {
+                    const idToFetch = userType === "Provider" ? order.userID : order.providerID;
+                    return fetch(`${servicesEndpoint}Users/${idToFetch}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${JWTToken}`,
+                            "Content-Type": "application/json",
+                        },
+                    })
+                        .then(response => response.json())
+                        .then(user => {
+                            order.userName = user.username;
+                        })
+                        .catch(error => console.error('Error fetching user:', error));
+                });
+
+                const serviceFetchPromises = orders.map(order => {
+                    return fetch(`${servicesEndpoint}Services/${order.serviceID}`)
+                        .then(response => response.json())
+                        .then(service => {
+                            order.serviceName = service.serviceName;
+                        })
+                        .catch(error => console.error('Error fetching service:', error));
+                });
+
+                Promise.all([...userFetchPromises, ...serviceFetchPromises])
+                    .then(() => {
+                        const filteredOrders = isHistory
+                            ? orders.filter(order => order.status === "Delivered")
+                            : orders.filter(order => order.status !== "Delivered");
+
+                        if (filteredOrders.length === 0) {
+                            if (isHistory) {
+                                document.getElementById("noHistoryMessage").classList.remove("d-none");
+                            } else {
+                                ordersTableBody.innerHTML = "<tr><td colspan='5'>Няма поръчки в ход!</td></tr>";
+                            }
+                        } else {
+                            filteredOrders.forEach(order => {
+                                const orderDate = new Date(order.orderDate);
+                                const formattedDate = new Intl.DateTimeFormat("uk-UA", {
+                                    day: "numeric",
+                                    month: "numeric",
+                                    year: "numeric",
+                                }).format(new Date(orderDate));
+
+                                const orderRow = document.createElement("tr");
+                                orderRow.innerHTML = `
+                                        <td data-order-id="${order.orderID}">${order.userName || 'Unknown User'}</td>
+                                                    <td>${formattedDate}</td>
+                                        <td data-service-id="${order.serviceID}">${order.serviceName || 'Unknown Service'}</td>
+                                        <td>${order.price}</td>
+                                        <td>
+                                            ${!isHistory && userType === "Provider" ?
+                                        `<select class="form-select status-select bg-dark text-white" data-order-id="${order.orderID}" onchange="updateOrderStatus('${order.orderID}', this.value)">
+                                                    <option value="Requested" ${order.status === "Заявена" ? "selected" : ""}>Заявена</option>
+                                                    <option value="Accepted" ${order.status === "Изчакване" ? "selected" : ""}>Изчакване</option>
+                                                    <option value="Accepted" ${order.status === "Приета" ? "selected" : ""}>Приета</option>
+                                                    <option value="Sent" ${order.status === "Изпратена" ? "selected" : ""}>Изпратена</option>
+                                                    <option value="Delivered" ${order.status === "Получена" ? "selected" : ""}>Получена</option>
+                                            </select>`
+                                        : `<span>${order.status}</span>`}
+                                        </td>
+                                             ${isHistory && order.status === "Delivered" && userType === "Client" ? //Checking if it is a client to show the rate button
+                                        `<td><button class="btn btn-primary" onclick="openRatingModal('${order.orderID}')">Оцени</button></td>`
+                                        : ""}
+                                    `;
+                                ordersTableBody.appendChild(orderRow);
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error processing orders:', error));
+            })
+            .catch(error => console.error('Error fetching orders:', error));
+    }
+
+    function handleNoOrders(isHistory, ordersTableBody) {
+        if (isHistory) {
+            document.getElementById("noHistoryMessage").classList.remove("d-none");
+        } else {
+            ordersTableBody.innerHTML = "<tr><td colspan='5'>Няма поръчки в ход!</td></tr>";
+        }
+    }
+
+    function handleFetchError(isHistory, error) {
+        const tableBody = document.getElementById(isHistory ? "historyTableBody" : "ordersTableBody");
+        if (error.message === 'No orders found') {
+            handleNoOrders(isHistory, tableBody);
+        } else {
+            tableBody.innerHTML = `<tr><td colspan='5'>Error fetching orders: ${error.message}</td></tr>`;
+        }
+    }
+
+    function updateOrderStatus(orderId, newStatus) {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        fetch(`${servicesEndpoint}OngoingOrders/UpdateStatus/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newStatus)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update order status');
+                }
+                if (response.status === 204) {
+
+                    return null;
+                }
+                return response.text();
+            })
+            .then(text => {
+                if (text) {
+                    const data = JSON.parse(text);
+                    console.log('Order status updated successfully:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error updating order status:', error);
+            });
+
+    }
+
+    const activeChats = new Map();
+
+    function openChatModal(receiverId, receiverName) {
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const senderId = loggedInData.userId;
+
+        document.getElementById("chatModalLabel").textContent = `${receiverName}`;
+
+        const chatModalElement = document.getElementById("chatModal");
+        const chatModal = new bootstrap.Modal(chatModalElement);
+        chatModal.show();
+
+        let chatState = activeChats.get(receiverId);
+        if (!chatState) {
+            chatState = initializeChatState(senderId, receiverId);
+            activeChats.set(receiverId, chatState);
+        }
+
+        setupChatListeners(chatState);
+
+        chatModalElement.addEventListener("hidden.bs.modal", () => {
+            cleanupChat(chatState);
+        });
+    }
+
+    function initializeChatState(senderId, receiverId) {
+        return {
+            senderId,
+            receiverId,
+            messages: [],
+            lastFetchTimestamp: 0,
+            pollingInterval: null,
+            senderProfilePicture: "default.png",
+            receiverProfilePicture: "default.png",
+        };
+    }
+
+    function setupChatListeners(chatState) {
+        const chatContainer = document.getElementById("chatContainer");
+        const messageInput = document.getElementById("messageInput");
+        const sendButton = document.getElementById("sendButton");
+
+        chatContainer.innerHTML = "";
+        sendButton.onclick = null;
+        messageInput.onkeypress = null;
+
+        sendButton.onclick = () => sendMessage(chatState);
+        messageInput.onkeypress = (e) => {
+            if (e.key === "Enter") {
+                sendMessage(chatState);
+            }
+        };
+
+        fetchProfilePictures(chatState).then(() => {
+            pollForMessages(chatState);
+            chatState.pollingInterval = setInterval(() => pollForMessages(chatState), 1000);
+        });
+    }
+
+    async function fetchProfilePictures(chatState) {
+        const JWTToken = getCookie("JWTToken");
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        try {
+            const [senderResponse, receiverResponse] = await Promise.all([
+                fetch(`${servicesEndpoint}Users/${chatState.senderId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${JWTToken}`,
+                        "Content-Type": "application/json",
+                    },
+                }),
+                fetch(`${servicesEndpoint}Users/${chatState.receiverId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${JWTToken}`,
+                        "Content-Type": "application/json",
+                    },
+                }),
+            ]);
+
+            if (senderResponse.ok) {
+                const senderData = await senderResponse.json();
+                chatState.senderProfilePicture = senderData.profilePicture
+                    ? senderData.profilePicture.split(",")[0].trim()
+                    : "default.png";
+            }
+
+            if (receiverResponse.ok) {
+                const receiverData = await receiverResponse.json();
+                chatState.receiverProfilePicture = receiverData.profilePicture
+                    ? receiverData.profilePicture.split(",")[0].trim()
+                    : "default.png";
+            }
+        } catch (error) {
+            console.error("Error fetching user profile pictures:", error);
+        }
+    }
+
+    async function pollForMessages(chatState) {
+        const JWTToken = getCookie("JWTToken");
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        try {
+            const response = await fetch(
+                `${servicesEndpoint}Messages?senderId=${chatState.senderId}&receiverId=${chatState.receiverId}&since=${chatState.lastFetchTimestamp}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${JWTToken}`,
+                        "Content-Type": "application/json", 
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const newMessages = await response.json();
+
+                const filteredMessages = newMessages.filter(
+                    (newMsg) => !chatState.messages.some((existingMsg) => existingMsg.messageID === newMsg.messageID)
+                );
+
+                if (filteredMessages.length > 0) {
+                    chatState.messages = [...chatState.messages, ...filteredMessages];
+                    chatState.lastFetchTimestamp = Math.max(
+                        ...filteredMessages.map((m) => new Date(m.sentOn).getTime())
+                    );
+                    displayMessages(chatState);
+                }
+            } else {
+                console.error("Failed to fetch messages:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+        }
+    }
+
+    function displayMessages(chatState) {
+        const chatContainer = document.getElementById("chatContainer");
+        chatContainer.innerHTML = chatState.messages
+            .map((msg) => {
+                const isSender = msg.senderID === chatState.senderId;
+                const profilePicture = isSender
+                    ? chatState.senderProfilePicture
+                    : chatState.receiverProfilePicture;
+
+                return `
+                    <div class="d-flex ${isSender ? "justify-content-end" : "justify-content-start"} mb-2">
+                        <img src="/profilePictures/${profilePicture}" alt="PPicture" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <div class="p-3 rounded-3 ${isSender ? "bg-primary text-white" : "bg-secondary text-white"}" style="max-width: 70%;">
+                            <div>${escapeHtml(msg.messageContent)}</div>
+                            <div class="text-muted small mt-1">${new Date(msg.sentOn).toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                `;
+            })
+            .join("");
+
+        setTimeout(() => {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }, 200);
+    }
+
+    async function sendMessage(chatState) {
+        const JWTToken = getCookie("JWTToken");
+        const messageInput = document.getElementById("messageInput");
+        const messageContent = messageInput.value.trim();
+        if (!messageContent) return;
+
+        const message = {
+            messageID: "@Guid.NewGuid()",
+            senderID: chatState.senderId,
+            receiverID: chatState.receiverId,
+            messageContent: messageContent,
+            sentOn: new Date(),
+            messageStatus: 0,
+        };
+
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        try {
+            const response = await fetch(`${servicesEndpoint}Messages`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${JWTToken}`
+                },
+                body: JSON.stringify(message),
+            });
+            if (response.ok) {
+                messageInput.value = "";
+            } else {
+                console.error("Failed to send message:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
+    }
+
+    function cleanupChat(chatState) {
+        clearInterval(chatState.pollingInterval);
+        activeChats.delete(chatState.receiverId);
+    }
+
+    async function fetchMessagedPeople() {
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const JWTToken = getCookie("JWTToken");
+        const userId = loggedInData.userId;
+        const servicesURL = "@Model.ServicesEndpoint";
+        const messagesDiv = document.querySelector("#messages");
+        const tableBody = document.querySelector("#messagedPeopleTable tbody");
+
+        messagesDiv.classList.remove("d-none");
+        tableBody.innerHTML =
+            '<tr><td colspan="2" class="text-center"><i class="fas fa-spinner fa-spin"></i> Зареждане на съобщенията...</td></tr>';
+
+        try {
+            const response = await fetch(`${servicesURL}Messages/${userId}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${JWTToken}`
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data) || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="2" class="text-center">Няма намерени съобщения!</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = "";
+
+            for (const personId of data) {
+                try {
+                    const nameResponse = await fetch(`${servicesURL}Users/${personId}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${JWTToken}`
+                        },
+                    });
+
+                    if (!nameResponse.ok) {
+                        throw new Error(`HTTP error! status: ${nameResponse.status}`);
+                    }
+
+                    const userData = await nameResponse.json();
+                    const personName = userData.username || "Unknown";
+                    const imageFilenames = userData.profilePicture
+                        ? userData.profilePicture.split(",")
+                        : ["default.png"];
+
+                    const row = document.createElement("tr");
+
+                    const imgElement = document.createElement("img");
+                    imgElement.src = `/profilePictures/${imageFilenames[0].trim()}`;
+                    imgElement.classList.add("img-fluid", "rounded-circle");
+                    imgElement.style.width = "40px";
+                    imgElement.style.height = "40px";
+                    imgElement.style.objectFit = "cover";
+
+                    row.innerHTML = `
+                  <td class="fw-bold">
+                    <span class="d-flex align-items-center">
+                      ${imgElement.outerHTML}
+                      <span class="ms-2">${personName}</span>
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-primary btn-sm view-messages" data-id="${personId}">
+                          <i class="fa-solid fa-message pe-none"></i>
+                    </button>
+                  </td>
+                `;
+
+                    tableBody.appendChild(row);
+                } catch (nameError) {
+                    console.error(`Error fetching name for ID ${personId}:`, nameError);
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                  <td>Unknown</td>
+                  <td>
+                    <button class="btn btn-primary btn-sm view-messages" data-id="${personId}">
+                          <i class="fa-solid fa-message pe-none"></i>
+                    </button>
+                  </td>
+                `;
+                    tableBody.appendChild(row);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching messaged people:", error);
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="2" class="text-center">
+                  <div class="alert alert-danger" role="alert">
+                    Error loading messages: ${error.message}
+                  </div>
+                </td>
+              </tr>
+            `;
+        }
+    }
+
+    async function fetchFavorites() {
+        const servicesURL = "@Model.ServicesEndpoint";
+        const favoritesLoader = document.getElementById("favoritesLoader");
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const userId = loggedInData.userId;
+
+        favoritesLoader.classList.remove("d-none");
+
+        const startTime = Date.now();
+        
+        try {
+            const response = await fetch(servicesURL + "Favorites/" + userId, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch favorites");
+            }
+
+            const data = await response.json();
+            const favorites = Array.isArray(data) ? data : [data];
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 300) {
+                await new Promise((resolve) => setTimeout(resolve, 300 - elapsedTime));
+            }
+
+            populateFavoritesTable(favorites);
+        } catch (error) {
+            console.error("Error fetching favorites", error);
+            showNoFavoritesMessage();
+        } finally {
+            favoritesLoader.classList.add("d-none");
+        }
+    }
+
+    async function populateFavoritesTable(favorites) {
+        const favoritesTableBody = document.getElementById("favoritesTableBody");
+        const noFavoritesMessage = document.getElementById("noFavoritesMessage");
+        favoritesTableBody.innerHTML = "";
+
+        if (favorites.length > 0) {
+            for (const favorite of favorites) {
+                try {
+                    const service = await fetchServiceName(favorite.serviceID);
+
+                    const createdOn = new Date(favorite.addedOn);
+                    const formattedDate = new Intl.DateTimeFormat("uk-UA", {
+                        day: "numeric",
+                        month: "numeric",
+                        year: "numeric",
+                    }).format(new Date(createdOn)); 
+
+
+                    const row = `
+                             <tr class="favorite-row" data-favorite-id="${favorite.favoriteID}" data-service-id="${favorite.serviceID}">
+                                     <td class="fs-6 fw-bold">${service.serviceName}
+                                 <td>${formattedDate}</td>
+                             <td>
+                                                 <a href="@Url.Action("Service", "Services")?serviceID=${service.serviceID}&categoryName=${service.categoryName}" class="btn btn-primary btn-sm">Посети</a>
+                                         <button class="btn btn-danger btn-sm delete-favorite" data-favorite-id="${favorite.favoriteID}">Изтрий</button>
+
+                             </td>
+                         </tr>
+                     `;
+                    favoritesTableBody.insertAdjacentHTML("beforeend", row);
+                } catch (error) {
+                    console.error("Error fetching service name", error);
+                }
+            }
+            noFavoritesMessage.classList.add("d-none");
+
+            document.querySelectorAll(".delete-favorite").forEach((button) => {
+                button.addEventListener("click", handleDeleteFavorite);
+            });
+        } else {
+            showNoFavoritesMessage();
+        }
+    }
+
+    async function fetchServiceName(serviceID) {
+        const servicesURL = "@Model.ServicesEndpoint";
+
+        try {
+            const response = await fetch(servicesURL + "Services/" + serviceID, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch service name and category");
+            }
+
+            const service = await response.json();
+
+            const categoryResponse = await fetch(servicesURL + "Categories/" + service.categoryID, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!categoryResponse.ok) {
+                throw new Error("Failed to fetch category name");
+            }
+
+            const category = await categoryResponse.json();
+
+            return {
+                serviceName: service.serviceName,
+                serviceID: service.serviceID,
+                categoryName: category.categoryName,
+            };
+        } catch (error) {
+            console.error("Error fetching service or category", error);
+            return {
+                serviceName: "Unknown Service",
+                serviceID: serviceID,
+                categoryName: "Unknown Category",
+            };
+        }
+    }
+
+    async function handleDeleteFavorite(event) {
+        const favoriteID = event.target.getAttribute("data-favorite-id");
+        const servicesURL = "@Model.ServicesEndpoint";
+
+        try {
+            const response = await fetch(servicesURL + "Favorites/" + favoriteID, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete favorite");
+            }
+
+            event.target.closest("tr").remove();
+
+            if (document.querySelectorAll("#favoritesTableBody tr").length === 0) {
+                showNoFavoritesMessage();
+            }
+        } catch (error) {
+            console.error("Error deleting favorite", error);
+        }
+    }
+
+    function showNoFavoritesMessage() {
+        const noFavoritesMessage = document.getElementById("noFavoritesMessage");
+        noFavoritesMessage.classList.remove("d-none");
+    }
+
+    async function fetchProviderServices() {
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const userId = loggedInData.userId;
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+
+        const servicesLoader = document.getElementById("servicesLoader");
+        servicesLoader.classList.remove("d-none");
+
+        const startTime = Date.now();
+
+        try {
+            const response = await fetch(`${servicesEndpoint}Services/Provider/${userId}`);
+
+            const elapsedTime = Date.now() - startTime;
+            if (elapsedTime < 300) {
+                await new Promise((resolve) => setTimeout(resolve, 300 - elapsedTime));
+            }
+
+            if (response.ok) {
+                const services = await response.json();
+                populateServicesTable(services);
+            } else {
+                console.error("Failed to fetch services:", response.statusText);
+                showNoServicesMessage();
+            }
+        } catch (error) {
+            console.error("Error fetching services:", error);
+            showNoServicesMessage();
+        } finally {
+            servicesLoader.classList.add("d-none");
+        }
+    }
+
+    function populateServicesTable(services) {
+        const servicesTableBody = document.getElementById("servicesTableBody");
+        const noServicesMessage = document.getElementById("noServicesMessage");
+        servicesTableBody.innerHTML = "";
+
+        if (services.length > 0) {
+            services.forEach((service) => {
+                const formattedDate = new Intl.DateTimeFormat("uk-UA", {
+                    day: "numeric",
+                    month: "numeric",
+                    year: "numeric",
+                }).format(new Date(service.createdOn));
+
+                const row = `
+                    <tr class="service-row" data-service-id="${service.serviceID}" onclick="expandServiceView('${service.serviceID}')">
+                        <td class="fs-6 fw-bold">${service.serviceName}</td>
+                        <td class="fs-6">${service.contactPhone}</td>
+                        <td class="fs-6">${formattedDate}</td>
+                        <td class="fs-6 fw-bold">${service.price}</td>
+                    </tr>
+                `;
+                servicesTableBody.insertAdjacentHTML("beforeend", row);
+            });
+            noServicesMessage.classList.add("d-none");
+        } else {
+            showNoServicesMessage();
+        }
+    }
+
+    let quill;
+    let removedImages = [];
+    let selectedImages = [];
+
+    function initializeQuill() {
+        if (!quill) {
+            quill = new Quill("#serviceDescription", {
+                theme: "snow",
+                modules: {
+                    toolbar: [
+                        ["bold", "italic", "underline"],
+                        [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
+                    ],
+                },
+            });
+        }
+    }
+
+    function expandServiceView(serviceID) {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+
+        selectedImages = []; 
+        document.getElementById("imagePreviewContainer").innerHTML = ""; 
+
+        fetch(`${servicesEndpoint}Services/${serviceID}`)
+            .then((response) => response.json())
+            .then((service) => {
+                const serviceTitleElement = document.getElementById("serviceTitle");
+                serviceTitleElement.innerText = service.serviceName;
+                serviceTitleElement.dataset.serviceId = service.serviceID;
+
+                document.getElementById("serviceName").value = service.serviceName;
+                document.getElementById("servicePrice").value = service.price;
+
+                const serviceImagesContainer = document.getElementById("serviceImages");
+                serviceImagesContainer.innerHTML = "";
+
+                initializeQuill();
+
+                quill.setContents(quill.clipboard.convert(service.description));
+
+                if (service.images) {
+                    const imageFilenames = service.images.split(",");
+                    imageFilenames.forEach((filename) => {
+                        const imageDiv = document.createElement("div");
+                        imageDiv.classList.add("col-6", "position-relative");
+
+                        const imgElement = document.createElement("img");
+                        imgElement.src = `/serviceImages/${filename.trim()}`;
+                        imgElement.classList.add("img-fluid", "img-thumbnail", "w-100");
+                        imgElement.alt = filename.trim();
+
+                        const removeButton = document.createElement("button");
+                        removeButton.classList.add("btn-close", "btn-close", "position-absolute", "top-0", "end-0");
+                        removeButton.onclick = () => removeImage(filename.trim(), imageDiv);
+
+                        imageDiv.appendChild(imgElement);
+                        imageDiv.appendChild(removeButton);
+                        serviceImagesContainer.appendChild(imageDiv);
+                    });
+                }
+
+                const serviceView = document.getElementById("expandedServiceView");
+                serviceView.classList.remove("d-none");
+                setTimeout(() => serviceView.classList.add("show"), 10);
+            })
+            .catch((error) => {
+                console.error("Error fetching service details:", error);
+                alert("Failed to load service details.");
+            });
+    }
+
+    function handleImageUpload(event) {
+        const files = event.target.files;
+        const imagePreviewContainer = document.getElementById("imagePreviewContainer");
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const uniqueName = `${Date.now()}-${file.name}`;
+
+
+                    const imgWrapper = document.createElement("div");
+                    imgWrapper.className = "position-relative col-6"; 
+                    imgWrapper.dataset.filename = uniqueName;
+
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.className = "image-preview img-fluid img-thumbnail";
+
+                    const removeBtn = document.createElement("button");
+                    removeBtn.className = "btn-close btn-close-white position-absolute top-0 end-0";
+                    removeBtn.onclick = function () {
+                        imagePreviewContainer.removeChild(imgWrapper);
+                        selectedImages = selectedImages.filter((image) => image.name !== uniqueName);
+                    };
+
+                    imgWrapper.appendChild(img);
+                    imgWrapper.appendChild(removeBtn);
+                    imagePreviewContainer.appendChild(imgWrapper);
+
+                    selectedImages.push(new File([file], uniqueName, { type: file.type }));
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+
+    function removeImage(imageName, imageDiv) {
+        removedImages.push(imageName);
+        imageDiv.remove();
+    }
+
+    async function saveServiceChanges() {
+        const serviceID = document.getElementById("serviceTitle").dataset.serviceId;
+        const serviceName = document.getElementById("serviceName").value;
+        const serviceDescription = quill.root.innerHTML;
+        const servicePrice = parseFloat(document.getElementById("servicePrice").value);
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const providerID = loggedInData.userId;
+
+        const serviceData = await fetch(`${servicesEndpoint}Services/${serviceID}`)
+            .then((response) => response.json())
+            .catch((error) => {
+                console.error("Error fetching service data:", error);
+                alert("An error occurred while fetching the service data");
+                return null;
+            });
+
+        if (!serviceData) {
+            return;
+        }
+
+        let imageFilenames = serviceData.images ? serviceData.images.split(',').filter(image => !removedImages.includes(image.trim())) : [];
+
+        let uniqueFileNames = [];
+        try {
+            for (let i = 0; i < selectedImages.length; i++) {
+                const file = selectedImages[i];
+                const imageFormData = new FormData();
+                // Generate a unique name for the file
+                const uniqueFileName = `${Date.now()}-${file.name}`;
+                imageFormData.append("serviceImage", file, uniqueFileName);
+                const response = await fetch("UploadServiceImage", {
+                    method: "POST",
+                    body: imageFormData,
+                });
+                const data = await response.json();
+                if (data.filePath) {
+                    uniqueFileNames.push(uniqueFileName);
+                } else {
+                    throw new Error("Failed to upload image: " + file.name);
+                }
+            }
+        } catch (error) {
+            console.error("Error uploading images:", error);
+            alert("An error occurred while uploading images");
+            return;
+        }
+
+        imageFilenames = imageFilenames.concat(uniqueFileNames);
+
+        const updatedService = {
+            serviceID: serviceID,
+            providerID: providerID,
+            serviceName: serviceName,
+            categoryID: serviceData.categoryID,
+            price: servicePrice,
+            description: serviceDescription,
+            contactPhone: serviceData.contactPhone,
+            createdOn: serviceData.createdOn,
+            images: imageFilenames.join(','),
+        };
+
+        try {
+            const response = await fetch(`${servicesEndpoint}Services`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedService),
+            });
+
+            if (response.ok) {
+                closeServiceView();
+                showAlert("changesSavedAlert");
+                fetchProviderServices();
+                removedImages = []; 
+                selectedImages = []; 
+            } else {
+                alert("Failed to update the service");
+            }
+        } catch (error) {
+            console.error("Error updating service:", error);
+            alert("An error occurred while updating the service");
+        }
+    }
+
+    function deleteService() {
+        const serviceID = document.getElementById("serviceTitle").dataset.serviceId;
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+
+        const deleteModal = new bootstrap.Modal(document.getElementById("deleteServiceModal"));
+        deleteModal.show();
+
+        document.getElementById("confirmDeleteButton").onclick = async () => {
+            try {
+                const response = await fetch(`${servicesEndpoint}Services/${serviceID}`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                });
+
+                if (response.ok) {
+                    showAlert("deleteSuccessAlert");
+                    closeServiceView();
+                    fetchProviderServices();
+                } else {
+                    alert("Failed to delete the service");
+                }
+            } catch (error) {
+                console.error("Error deleting service:", error);
+                alert("An error occurred while deleting the service");
+            } finally {
+                deleteModal.hide();
+            }
+        };
+    }
+
+    function closeServiceView() {
+        const serviceView = document.getElementById("expandedServiceView");
+        serviceView.classList.remove("show");
+        setTimeout(() => serviceView.classList.add("d-none"));
+    }
+
+    function showNoServicesMessage() {
+        const noServicesMessage = document.getElementById("noServicesMessage");
+        noServicesMessage.classList.remove("d-none");
+    }
+
+    function displaySelectedImage(event, imgElementId) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const imgElement = document.getElementById(imgElementId);
+                imgElement.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function handleImageSelection(event) {
+        displaySelectedImage(event, "selectedAvatar");
+        const changeImageButton = document.getElementById("changeImageButton");
+        changeImageButton.classList.remove("d-none");
+    }
+
+    function toggleEdit() {
+        const formFields = document.querySelectorAll(
+            '#userForm input[type="text"], #userForm input[type="email"], #userForm input[type="password"]',
+        );
+
+        const passwordField = document.getElementById("password");
+        const editButton = document.getElementById("editButton");
+        const saveButton = document.getElementById("saveButton");
+
+        const labels = document.querySelectorAll("#userForm label");
+
+        if (editButton.innerText.includes("Редактирай")) {
+            formFields.forEach((field) => {
+                field.readOnly = false;
+                field.classList.add("editable", "highlight-edit");
+                
+            });
+            labels.forEach((label) => {
+                label.insertAdjacentHTML("beforeend", '<i class="fas fa-edit ms-2"></i>');
+            });
+            passwordField.type = "text";
+            editButton.innerHTML = "<i class='fas fa-ban'></i> Cancel";
+            saveButton.classList.remove("d-none");
+        } else {
+            formFields.forEach((field) => {
+                field.readOnly = true;
+                field.classList.remove("editable", "highlight-edit");
+            });
+            labels.forEach((label) => {
+                const icon = label.querySelector(".fa-edit");
+                if (icon) {
+                    icon.remove();
+                }
+            });
+            passwordField.type = "password";
+            editButton.innerHTML = "<i class='fas fa-pen'></i> Редактирай";
+            saveButton.classList.add("d-none");
+        }
+    }
+
+    async function saveChanges() {
+        const servicesURL = "@Model.ServicesEndpoint";
+        const JWTToken = getCookie("JWTToken");
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const userId = loggedInData.userId;
+        const userType = document.getElementById("userType").value || loggedInData.userType;
+        const passwordField = document.getElementById("password");
+
+        
+        if (passwordField.value === "") { 
+            showAlert("uploadErrorPasswordAlert");
+            return;
+        }
+
+        const updatedData = {
+            userId: userId,
+            username: document.getElementById("username").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value || loggedInData.password,
+            userType: userType,
+            createdOn: loggedInData.createdOn,
+            profilePicture: loggedInData.profilePicture || "default.jpg",
+            phoneNumber: document.getElementById("phoneNumber").value,
+        };
+
+        const userDataForCookie = {
+            userId: userId,
+            username: document.getElementById("username").value,
+            email: document.getElementById("email").value,
+            userType: userType,
+            profilePicture: loggedInData.profilePicture || "default.jpg",
+            phoneNumber: document.getElementById("phoneNumber").value,
+        };
+
+        setCookie("LoggedInData", JSON.stringify(userDataForCookie), 1);  // Store user information in a cookie
+
+        try {
+            const response = await fetch(servicesURL + "Users/EditUserData", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${JWTToken}`
+                },
+                body: JSON.stringify(updatedData),
+            });
+
+            if (response.ok) {
+                toggleEdit();
+                showAlert("uploadSuccessAlert");
+                document.getElementById("username").value = updatedData.username;
+                
+            } else {
+                const errorData = await response.json();
+                console.error("Error:", errorData);
+                showAlert(
+                    "uploadErrorAlert");
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            showAlert("uploadErrorAlert");
+        }
+        document.getElementById("password").type = "password";
+    }
+
+    function showAlert(alertId, message) {
+        const alertElement = document.getElementById(alertId);
+        if (message) {
+            alertElement.querySelector("div").innerText = message;
+        }
+        alertElement.classList.remove("d-none", "fade");
+        alertElement.classList.add("show");
+
+        setTimeout(() => {
+            alertElement.classList.add("fade");
+            setTimeout(() => {
+                alertElement.classList.add("d-none");
+                alertElement.classList.remove("show");
+            }, 500);
+        }, 3000);
+    }
+
+    async function uploadProfilePicture() {
+        let servicesURL = "@Model.ServicesEndpoint";
+        var fileInput = document.getElementById("profilePicture");
+        var file = fileInput.files[0];
+        var formData = new FormData();
+
+        const allowedTypes = ["image/jpeg", "image/png"];
+        if (!allowedTypes.includes(file.type)) {
+            showAlert("invalidFileTypeAlert"); 
+            return;
+        }
+
+        const uniqueFileName = `${Date.now()}-${file.name}`;
+
+        formData.append("profilePicture", file, uniqueFileName);
+
+        try {
+            const response = await fetch("UploadProfilePicture", {
+                method: "POST",
+                body: formData,
+            });
+
+            const loggedInData = JSON.parse(getCookie("LoggedInData"));
+            const JWTToken = getCookie("JWTToken")
+            const user = loggedInData.userId;
+
+            const data = await response.json();
+
+            let filePath = data.filePath;
+            const fileName = filePath.match(/[^/]+$/)[0];
+
+            if (data.filePath) {
+                const updateResponse = await fetch(servicesURL + "Users/EditUser", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${JWTToken}`
+                    },
+                    body: JSON.stringify({
+                        userId: user,
+                        profilePicture: uniqueFileName,
+                    }),
+                });
+
+                if (updateResponse.ok) {
+                    document.getElementById("selectedAvatar").src = `/profilePictures/${uniqueFileName}`;
+                    showAlert("uploadSuccessAlert");
+                    document.getElementById("changeImageButton").classList.add("d-none");
+                    loggedInData.profilePicture = uniqueFileName;
+                    setCookie("LoggedInData", JSON.stringify(loggedInData), 1);
+                } else {
+                    showAlert("uploadErrorAlert");
+                }
+            } else {
+                showAlert("uploadErrorAlert");
+            }
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            showAlert("uploadErrorAlert");
+        }
+    }
+
+</script>

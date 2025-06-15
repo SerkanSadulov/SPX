@@ -1,0 +1,43 @@
+﻿body {
+    font-family: 'Nunito', sans-serif;
+}
+
+.image-preview {
+    width: 180px;
+    height: 120px;
+    object-fit: cover;
+    margin: 5px;
+    border-radius: 10px;
+    border: 2px solid #007bff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .image-preview:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+.custom-file-input {
+    display: none;
+}
+
+.remove-image {
+    color: red;
+    cursor: pointer;
+    font-size: 30px;
+    position: absolute;
+    right: 12px;
+    font-weight: bold;
+}
+
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1050;
+}
+
+.custom-border-black {
+    border: 1px solid black !important; /* Makes the border black and thicker */
+}

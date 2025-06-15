@@ -1,0 +1,194 @@
+﻿@using WEB.ViewModels
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelper
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+<link rel="stylesheet" href="~/css/Register.css">
+<div class="register-page">
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Account created successfully!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Please fill in all the fields.
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <section class="vh-100">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col col-xl-10">
+                    <div class="card" style="border-radius: 1rem;">
+                        <div class="row g-0">
+                            <div class="col-md-6 col-lg-5 d-none d-md-block">
+                                <img src="~/img/RegisterImageV2.png"
+                                     alt="register form" class="img-fluid"
+                                     style="border-radius: 1rem 0 0 1rem; width: 100%; height: 100%; object-fit: cover;" />
+                            </div>
+                            <div class="col-md-6 col-lg-7 d-flex align-items-center">
+                                <div class="card-body p-4 p-lg-5 ">
+
+                                    <form class="mx-1 mx-md-4">
+                                        <div class="d-flex align-items-center mb-3 pb-1">
+                                            <img src="~/img/SPXLogo.png" alt="Logo" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 10px;" />
+                                            <span class="h1 fw-bold mb-0">Service & Product eXchange</span>
+                                        </div>
+
+                                        <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Създаване на профил</h5>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <small id="emailHelp" class="form-text">Потребителско име</small>
+                                            <input type="text" name="username" class="form-control form-control-lg" id="exampleInputUsername1" placeholder="Потребителско име" asp-for="Username">
+                                        </div>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <small id="emailHelp" class="form-text">Телефонен номер</small>
+                                            <input type="text" name="phoneNumber" class="form-control form-control-lg" id="exampleInputPhoneNumber" placeholder="Телефонен номер" asp-for="PhoneNumber">
+                                        </div>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <small id="emailHelp" class="form-text">Имейл</small>
+                                            <input type="email" name="email" class="form-control form-control-lg" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Имейл" asp-for="Email">
+                                            <small id="emailHelp" class="form-text text-muted">Имейлът никога няма да бъде разпространяван без ваше разрешение.</small>
+                                        </div>
+
+                                        <div class="form-outline mb-4">
+                                            <small id="emailHelp" class="form-text">Тип на потребителя</small>
+                                            <select class="select form-select form-control-lg" name="usertype" id="exampleInputUserType" asp-for="UserType">
+                                                <option value="1" disabled selected>Изберете тип</option>
+                                                <option value="2">Клиент</option>
+                                                <option value="3">Продавач</option>
+                                            </select>
+                                        </div>
+
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <small id="emailHelp" class="form-text">Парола</small>
+                                            <input type="password" name="password" class="form-control form-control-lg" id="exampleInputPassword1" placeholder="Парола" asp-for="Password">
+                                        </div>
+
+                                        <div class="pt-1 mb-4">
+                                            <button type="button" name="register" data-mdb-button-init data-mdb-ripple-init class="btn btn-secondary btn-lg btn-block">Регистрирай се!</button>
+                                        </div>
+
+                                    </form>
+
+                                    <p class="mb-5 pb-lg-2">
+                                        Вече имате профил?
+                                        <a href="/Home/LogIn" class="text-decoration-none text-success">Впишете се от тук!</a>
+                                    </p>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        $(document).ready(function () {
+            let servicesURL = "@Model.ServicesEndpoint";
+
+            $("div.register-page").on("click", "button[name='register']", async function (e) {
+                e.preventDefault();
+
+                $(".form-control").removeClass("is-invalid");
+
+                const user = {
+                    UserId: "@Guid.NewGuid()",
+                    Username: $("input[name='username']").val(),
+                    Email: $("input[name='email']").val(),
+                    Password: $("input[name='password']").val(),
+                    UserType: $("select[name='usertype'] option:selected").text(),
+                    CreatedOn: new Date().toISOString(),
+                    PhoneNumber: $("input[name='phoneNumber']").val(),
+                };
+
+                if (user.UserType === "Продавач") {
+                    user.UserType = "Provider";
+                } else if (user.UserType === "Клиент") {
+                    user.UserType = "Client";
+                }
+
+                if (!user.Username || !user.Email || !user.Password || !user.UserType || !user.PhoneNumber) {
+                    // Mark missing fields red
+                    if (!user.Username) $("input[name='username']").addClass("is-invalid");
+                    if (!user.Email) $("input[name='email']").addClass("is-invalid");
+                    if (!user.Password) $("input[name='password']").addClass("is-invalid");
+                    if (!user.PhoneNumber) $("input[name='phoneNumber']").addClass("is-invalid");
+
+                    showToast("errorToast", "Моля попълнете всички полета!");
+                    return;
+                }
+
+                if (user.UserType === "1") {
+                    showToast("errorToast", "Моля изберете тип на потребителя.");
+                    return;
+                }
+
+                if (user.Password.length < 8) {
+                    $("input[name='password']").addClass("is-invalid");
+                    showToast("errorToast", "Паролата трябва да бъде поне 8 символа!");
+                    return;
+                }
+
+                const phoneRegex = /^(?:\+359|0)\d+$/;
+                if (!phoneRegex.test(user.PhoneNumber)) {
+                    $("input[name='phoneNumber']").addClass("is-invalid");
+                    showToast("errorToast", "Телефоният номер трябва да почва с +359 или 0");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(servicesURL + "Users", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(user),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    showToast("successToast", "Профилът е създаден успешно");
+
+                    setTimeout(function () {
+                        let url = '@Url.Action("LogIn", "Home")';
+                        window.location.href = url;
+                    }, 2200);
+                } catch (error) {
+                    console.error("Error creating user:", error);
+                    showToast("errorToast", "Error creating user. Please try again.");
+                }
+            });
+
+            function showToast(toastId, message) {
+                const toastElement = document.getElementById(toastId);
+                const toastBody = toastElement.querySelector(".toast-body");
+                toastBody.textContent = message;
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+            }
+        });
+    </script>
+
+</div>

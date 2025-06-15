@@ -1,0 +1,61 @@
+﻿@using WEB.ViewModels
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelper
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+<style>
+    #messages {
+        height: 400px;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="text-center">Chat Application</h2>
+    <div id="messages" class="p-3 mb-3"></div>
+    <form id="messageForm" class="form-inline">
+        <input type="text" id="messageInput" class="form-control mr-2" placeholder="Type your message" required>
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+</div>
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chat")
+        .build();
+
+    connection.on("ReceiveMessage", function (sender, message) {
+        const msg = `${sender}: ${message}`;
+        const msgElement = document.createElement("div");
+        msgElement.textContent = msg;
+        document.getElementById("messages").appendChild(msgElement);
+        document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    });
+
+    connection.start().catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    document.getElementById("messageForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const message = document.getElementById("messageInput").value;
+        const senderId = getCookie("userId"); 
+
+        connection.invoke("SendMessage", senderId, message).catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        document.getElementById("messageInput").value = "";
+    });
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+</script>
+
+</div>

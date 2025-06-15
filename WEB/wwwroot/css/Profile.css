@@ -1,0 +1,168 @@
+﻿body, html {
+    font-family: 'Nunito', sans-serif;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto;
+    border: 5px solid #212121;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+    .avatar-wrapper:hover {
+        transform: scale(1.05);
+    }
+
+    .avatar-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+    .avatar-wrapper input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .avatar-wrapper .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .avatar-wrapper:hover .overlay {
+        opacity: 1;
+    }
+
+.overlay i {
+    color: #fff;
+    font-size: 2em;
+}
+
+.active{
+    color:white !important;
+}
+
+
+.rating-stars .star {
+    font-size: 2rem;
+    cursor: pointer;
+    color: lightgray;
+}
+
+    .rating-stars .star.selected {
+        color: gold;
+    }
+
+#uploadSuccessAlert, #uploadErrorAlert, #changesSavedAlert, #deleteSuccessAlert, #uploadErrorPasswordAlert, #invalidFileTypeAlert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 250px;
+    z-index: 1050;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateX(100%);
+}
+
+    #uploadSuccessAlert.show, #uploadErrorAlert.show, #changesSavedAlert.show, #deleteSuccessAlert.show, #uploadErrorPasswordAlert.show, #invalidFileTypeAlert.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+.alert-dismissible .btn-close {
+    padding: 0.25rem;
+}
+
+.editable {
+    border: 2px solid #4caf50;
+}
+
+.highlight-edit {
+    border-color: #d32f2f !important;
+}
+
+.card-header-tabs {
+    border-bottom: none;
+}
+
+#serviceImages img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    margin: 5px;
+}
+
+@media (max-width: 576px) {
+    .avatar-wrapper {
+        width: 150px;
+        height: 150px;
+    }
+
+    .nav-tabs {
+        font-size: 0.9rem;
+    }
+
+    .btn {
+        font-size: 0.85rem;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+
+#providerServices .service-row {
+    cursor: pointer;
+}
+
+    #providerServices .service-row:hover {
+        background-color: #f8f9fa;
+    }
+
+#expandedServiceView {
+    z-index: 1050;
+    transition: opacity 0.3s ease;
+}
+
+    #expandedServiceView.show {
+        display: flex;
+        opacity: 1;
+    }
+
+    #expandedServiceView .card {
+        max-width: 90%;
+    }
+
+@media (min-width: 768px) {
+    #expandedServiceView .card {
+        max-width: 600px;
+    }
+}
+
+@media (min-width: 992px) {
+    #expandedServiceView .card {
+        max-width: 700px;
+    }
+}

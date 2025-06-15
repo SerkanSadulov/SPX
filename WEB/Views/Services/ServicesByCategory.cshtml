@@ -1,0 +1,881 @@
+﻿@using WEB.ViewModels
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelper
+@model ServicesViewModel
+@{
+    ViewData["Title"] = "Category";
+    var profileUrl = Url.Action("Profile", "Home");
+    var uploadUrl = Url.Action("UploadProfilePicture", "Users");
+    var loginUrl = Url.Action("LogIn", "Home");
+}
+
+<link rel="stylesheet" href="~/css/ServicesByCategory.css">
+
+<div class="toast-container" id="toast-container"></div>
+
+<div class="container">
+    <h1 class="text-center mb-4 mt-1" id="categoryТitle"></h1>
+
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="search-container">
+                <div class="input-group">
+                    <span class="input-group-text  border-secondary">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text"
+                           class="form-control  border-secondary"
+                           id="searchInput"
+                           placeholder="Търсете услуги по име, описание или цена..."
+                           style="border-left: none;">
+                    <button class="btn btn-outline-success" type="button" id="clearSearch">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                <div class="search-results-info mt-2 text-center">
+                    <small class="text-muted" id="searchResultsInfo"></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="compareButtonContainer" class="text-center mb-4" style="display: none;">
+        <span class="fw-bold fs-4" id="compareButton"><img src="/img/AIAnalyze.png" alt="ChatGPT Logo" id="sendInfoButton" class="ml-2" style="height: 125px;cursor:pointer"><br />Сравни с AI асситент</span>
+    </div>
+
+    <button id="wizardButton" class="floating-ai-btn" title="AI помощ при избора">
+        <div class="ai-icon">
+            <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="ai-pulse"></div>
+    </button>
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4" id="services-container"></div>
+</div>
+
+<div class="modal fade" id="analysisModal" tabindex="-1" aria-labelledby="analysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark bg-gradient text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="analysisModalLabel">Анализ на продуктите</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <pre class="analysis-body" style="white-space: pre-wrap;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Благодаря!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="wizardModal" tabindex="-1" aria-labelledby="wizardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark bg-gradient text-white">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="wizardModalLabel">
+                    <i class="bi bi-lightbulb-fill text-warning me-2"></i>
+                    AI Помощник за избор
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <p class="text-light mb-3">
+                        <i class="fa-solid fa-circle-info text-info me-2"></i>
+                        Опишете какво търсите и AI ще ви препоръча най-подходящите услуги от категорията.
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <label for="userNeeds" class="form-label fw-bold">
+                        <i class="fa-solid fa-comment me-2"></i>Какво търсите?
+                    </label>
+                    <textarea class="form-control bg-dark text-white border-secondary"
+                              id="userNeeds"
+                              rows="4"
+                              placeholder="Например: Търся услуга с добро съотношение цена-качество, бюджет до $100, важно ми е да е надеждна и с добри отзиви..."
+                              style="resize: none;"></textarea>
+                    <div class="form-text text-white">
+                        <i class="fa-solid fa-lightbulb text-warning me-1"></i>
+                        Споменете бюджет, важни характеристики, предпочитания и др.
+                    </div>
+                </div>
+
+                <div class="alert text-white bg-transparent border-white" role="alert">
+                    <i class="fa-solid fa-microchip me-2"></i>
+                    AI-ят ще анализира <strong id="servicesCount">всички</strong> налични услуги и продукти в категорията и ще ви даде персонализирани препоръки.
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary d-flex flex-column flex-sm-row">
+                <button type="button" class="btn btn-secondary mb-2 mb-sm-0 me-sm-2" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-2"></i>Отказ
+                </button>
+                <button type="button" class="btn btn-info" id="getRecommendations">
+                    <i class="fa-brands fa-searchengin me-2"></i>Получи препоръки
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="recommendationsModal" tabindex="-1" aria-labelledby="recommendationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-dark bg-gradient text-white" style="border-radius: 20px;">
+            <div class="modal-header border-bottom border-secondary">
+                <h4 class="modal-title" id="recommendationsModalLabel">
+                    <i class="fa-solid fa-star text-warning me-2"></i>
+                    AI Препоръки за вас
+                </h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="recommendationsContainer" class="container-fluid">
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary d-flex flex-column flex-sm-row">
+                <button type="button" class="btn btn-outline-light mb-2 mb-sm-0 me-sm-2" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-times me-2"></i>Затвори
+                </button>
+                <button type="button" class="btn btn-info" id="newSearchBtn">
+                    <i class="fa-solid fa-search me-2"></i>Ново търсене
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade h-100" id="loaderBackdrop" tabindex="-1" aria-labelledby="loaderBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0 text-white">
+            <div class="modal-body text-center p-0 d-flex align-items-center justify-content-center h-100">
+                <div class="text-center">
+                    <img src="/img/GptLoader.png" alt="ChatGPT Logo" class="spin-logo mb-3" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedServices = [];
+    let allServices = []; 
+    let filteredServices = []; 
+
+    function getQueryParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    async function fetchServicesByCategory() {
+        const categoryID = getQueryParameter("categoryID");
+        const categoryName = getQueryParameter("categoryName");
+        document.getElementById("categoryТitle").innerText = categoryName;
+        let servicesURL = "@Model.ServicesEndpoint";
+
+        try {
+            const response = await fetch(`${servicesURL}Services/Category/${categoryID}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch services");
+            }
+
+            const data = await response.json();
+            allServices = data; 
+            filteredServices = data; 
+            displayServices(data);
+            updateServicesCount();
+            updateSearchResultsInfo(data.length, data.length);
+        } catch (error) {
+            console.error("Error fetching services", error);
+            showToast("Error fetching services", "An error occurred while fetching services.", "danger");
+        }
+    }
+
+    function updateServicesCount() {
+        const count = allServices.length;
+        document.getElementById("servicesCount").textContent = count > 0 ? `${count}` : "всички";
+    }
+
+    function updateSearchResultsInfo(showing, total) {
+        const info = document.getElementById("searchResultsInfo");
+        if (showing === total) {
+            info.textContent = `Показани ${total} услуги`;
+        } else {
+            info.textContent = `Показани ${showing} от ${total} услуги`;
+        }
+    }
+
+    function performSearch() {
+        const searchTerm = document.getElementById("searchInput").value.toLowerCase().trim();
+
+        if (searchTerm === "") {
+            filteredServices = allServices;
+        } else {
+            filteredServices = allServices.filter(service =>
+                service.serviceName.toLowerCase().includes(searchTerm) ||
+                (service.description && service.description.toLowerCase().includes(searchTerm)) ||
+                service.price.toString().includes(searchTerm)
+            );
+        }
+
+        displayServices(filteredServices);
+        updateSearchResultsInfo(filteredServices.length, allServices.length);
+    }
+
+    function displayServices(data) {
+        const container = document.getElementById("services-container");
+        container.innerHTML = "";
+
+        if (data.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center mt-5">
+                    <div class="no-results">
+                        <i class="fa-solid fa-search fa-3x text-muted mb-3"></i>
+                        <h3 class="text-muted">Няма намерени обяви</h3>
+                        <p class="text-muted">Опитайте с различни ключови думи</p>
+                    </div>
+                </div>`;
+        } else {
+            data.forEach((service, index) => {
+                container.innerHTML += `
+                    <div class="col text-white">
+                        <div class="service-card shadow-lg rounded p-3 text-center bg-dark bg-gradient d-flex flex-column" style="cursor: pointer; height: 100%;">
+                            <img src="${service.images && service.images.split(",")[0].trim() !== "" ? "/serviceImages/" + service.images.split(",")[0].trim() : "https://picsum.photos/id/${100 + index}/250"}" alt="${service.serviceName}" class="img-fluid mb-3" style="max-width: 100%; cursor: pointer" onclick="redirectToServicePage('${service.serviceID}')" />
+                            <div class="service-name mb-2 flex-grow-1">
+                                <h5>${service.serviceName}</h5>
+                            </div>
+                            <div class="service-price text-white">
+                                <p><strong>Цена: </strong>${service.price}лв.</p>
+                            </div>
+                            <div class="form-check form-switch text-white d-flex justify-content-center">
+                                <input class="form-check-input" type="checkbox" id="compareCheckbox_${service.serviceID}" value="${service.serviceID}" onchange="handleCompareCheckbox('${service.serviceID}', '${service.serviceName}', '${encodeURIComponent(service.description)}', ${service.price})">
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+    }
+
+    function redirectToServicePage(serviceID) {
+        const url = '@Url.Action("Service", "Services")' + "?serviceID=" + encodeURIComponent(serviceID);
+        window.location.href = url;
+    }
+
+    function handleCompareCheckbox(serviceID, serviceName, encoded, servicePrice) {
+        const checkbox = document.getElementById(`compareCheckbox_${serviceID}`);
+        const serviceDescription = decodeURIComponent(encoded); 
+
+        if (checkbox.checked) {
+            selectedServices.push({
+                id: serviceID,
+                name: serviceName,
+                description: serviceDescription,
+                price: servicePrice,
+            });
+            console.log(`Added service ${serviceID} to compare list:`, selectedServices);
+        } else {
+            selectedServices = selectedServices.filter((service) => service.id !== serviceID);
+            console.log(`Removed service ${serviceID} from compare list:`, selectedServices);
+        }
+
+        toggleCompareButton();
+    }
+
+    function toggleCompareButton() {
+        const cmp = document.getElementById("compareButtonContainer");
+        cmp.style.display = selectedServices.length > 1 ? "block" : "none";
+    }
+
+    function findServiceByName(serviceName) {
+        return allServices.find(service =>
+            service.serviceName.toLowerCase().includes(serviceName.toLowerCase()) ||
+            serviceName.toLowerCase().includes(service.serviceName.toLowerCase())
+        );
+    }
+
+    function displayRecommendations(recommendations) {
+        const container = document.getElementById("recommendationsContainer");
+        container.innerHTML = "";
+
+        if (!recommendations || recommendations.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-robot fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Няма налични препоръки</h4>
+                    <p class="text-muted">AI не можа да намери подходящи услуги за вашите нужди.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `<div class="row g-3">`;
+
+        recommendations.forEach((rec, index) => {
+            const service = findServiceByName(rec.name);
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⭐';
+            const medalClass = index === 0 ? 'bg-primary' : index === 1 ? 'bg-secondary' : index === 2 ? 'bg-dark' : 'bg-info';
+
+            container.innerHTML += `
+                <div class="col-12">
+                    <div class="card bg-dark h-100 shadow border-0">
+                        <div class="card-header bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge ${medalClass} rounded-pill fs-6">${medal} ${index + 1}. Място</span>
+                                ${service ? `<span class="text-white fs-5 fw-bold">${service.price}лв.</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="card-body bg-dark">
+                            <h5 class="card-title text-white">
+                                <i class="fa-solid fa-cube text-info me-2"></i>
+                                ${rec.name}
+                            </h5>
+                            <div class="card-text text-muted mt-3">
+                                <h6 class="text-info">
+                                    <i class="fa-solid fa-comment-dots me-2"></i>
+                                    Препоръка:
+                                </h6>
+                                <p class="text-white">${rec.reason || "Няма допълнително описание"}</p>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            ${service ? `
+                            <div class="d-flex flex-column flex-sm-row gap-2">
+                                <button class="btn btn-outline-info flex-fill mb-2 mb-sm-0" onclick="redirectToServicePage('${service.serviceID}')">
+                                    <i class="fa-solid fa-eye me-2"></i>Виж детайли
+                                </button>
+                                <button class="btn btn-info" onclick="selectServiceForCompare('${service.serviceID}', '${service.serviceName}', '${encodeURIComponent(service.description || '')}', ${service.price})">
+                                    <i class="fa-solid fa-plus me-2"></i>Добави
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML += `</div>`;
+    }
+
+    function selectServiceForCompare(serviceID, serviceName, encodedDescription, price) {
+        const checkbox = document.getElementById(`compareCheckbox_${serviceID}`);
+        if (checkbox) {
+            checkbox.checked = true;
+            handleCompareCheckbox(serviceID, serviceName, encodedDescription, price);
+            showToast("Успех", `${serviceName} е добавена за сравнение!`, "success");
+        }
+    }
+
+    function parseAIRecommendations(aiResponse) {
+        const recommendations = [];
+        const lines = aiResponse.split('\n').filter(line => line.trim());
+
+        let currentRec = null;
+        let isReasonBlock = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+
+            const productMatch = line.match(/(\d+\.|\*|\-)\s*\*\*(.*?)\*\*/);
+            if (productMatch) {
+                // Save previous recommendation if exists
+                if (currentRec) recommendations.push(currentRec);
+
+                currentRec = {
+                    name: productMatch[2].trim(),
+                    reason: ""
+                };
+                isReasonBlock = false;
+                continue;
+            }
+
+            if (currentRec) {
+                const reasonHeader = line.match(/\*\*(.*?)\*\*/);
+                if (reasonHeader) {
+                    currentRec.reason = reasonHeader[1].trim();
+                    isReasonBlock = true;
+                    continue;
+                }
+
+                if (isReasonBlock || currentRec.reason) {
+                    currentRec.reason += (currentRec.reason ? " " : "") + line;
+                }
+            }
+        }
+
+        if (currentRec) recommendations.push(currentRec);
+
+        return recommendations.slice(0, 5);
+    }
+
+    document.getElementById("wizardButton").addEventListener("click", () => {
+        const wizardModal = new bootstrap.Modal(document.getElementById("wizardModal"));
+        wizardModal.show();
+    });
+
+    document.getElementById("getRecommendations").addEventListener("click", async () => {
+        const userNeeds = document.getElementById("userNeeds").value.trim();
+
+        if (!userNeeds) {
+            showToast("Внимание", "Моля, опишете какво търсите.", "warning");
+            return;
+        }
+
+        const wizardModal = bootstrap.Modal.getInstance(document.getElementById("wizardModal"));
+        wizardModal.hide();
+
+        const loader = new bootstrap.Modal(document.getElementById("loaderBackdrop"));
+        loader.show();
+
+        try {
+            const servicesEndpoint = "@Model.ServicesEndpoint";
+
+            const allServicesData = allServices.map(service => ({
+                name: service.serviceName,
+                description: service.description || "Няма описание",
+                price: parseFloat(service.price) || 0
+            }));
+
+            const response = await fetch(`${servicesEndpoint}ChatGpt/Wizard`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userNeeds: userNeeds,
+                    products: allServicesData
+                })
+            });
+
+            loader.hide();
+
+            if (response.ok) {
+                const analysis = await response.text();
+                const recommendations = parseAIRecommendations(analysis);
+                displayRecommendations(recommendations);
+
+                const recommendationsModal = new bootstrap.Modal(document.getElementById("recommendationsModal"));
+                recommendationsModal.show();
+
+                document.getElementById("userNeeds").value = "";
+            } else {
+                showToast("Грешка", "AI помощ не е налична в момента.", "danger");
+            }
+        } catch (error) {
+            console.error("Error getting AI recommendations:", error);
+            loader.hide();
+            showToast("Грешка", "Възникна грешка при свързването с AI.", "danger");
+        }
+    });
+
+    document.getElementById("newSearchBtn").addEventListener("click", () => {
+        const recommendationsModal = bootstrap.Modal.getInstance(document.getElementById("recommendationsModal"));
+        recommendationsModal.hide();
+
+        setTimeout(() => {
+            const wizardModal = new bootstrap.Modal(document.getElementById("wizardModal"));
+            wizardModal.show();
+        }, 300);
+    });
+
+    document.getElementById("searchInput").addEventListener("input", performSearch);
+    document.getElementById("clearSearch").addEventListener("click", () => {
+        document.getElementById("searchInput").value = "";
+        performSearch();
+        document.getElementById("searchInput").focus();
+    });
+
+    async function sendInfoToAPI() {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        let prompt = "";
+
+        selectedServices.forEach((service) => {
+            prompt += `Name: ${service.name}\nDescription: ${service.description}\nPrice: ${service.price} лв.\n\n`;
+        });
+
+        const loaderBackdrop = new bootstrap.Modal(document.getElementById("loaderBackdrop"));
+        loaderBackdrop.show();
+
+        try {
+            const response = await fetch(`${servicesEndpoint}ChatGPT`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    prompt: `Analyze these products for the Bulgarian market and determine which one is better:
+                    ${prompt}
+
+                    Please provide your opinion on:
+
+                    Quality
+                    Price (is it reasonable for Bulgaria?)
+                    Legitimacy (does it seem trustworthy?)
+                    Respond in Bulgarian. Use bullet points for each category, and clearly state which product is better overall, with a brief explanation for your decision.`,
+                }),
+            });
+
+            loaderBackdrop.hide();
+
+            if (response.ok) {
+                const result = await response.text();
+                showAnalysisModal(result);
+            } else {
+                showToast("Error", "Failed to get analysis from ChatGPT.", "danger");
+            }
+        } catch (error) {
+            console.error("Error sending info to ChatGPT:", error);
+            loaderBackdrop.hide();
+            showToast("Error", "An error occurred while analyzing the products.", "danger");
+        }
+    }
+
+    function showAnalysisModal(analysis) {
+        document.querySelector(".analysis-body").textContent = analysis;
+        const modal = new bootstrap.Modal(document.getElementById("analysisModal"));
+        modal.show();
+    }
+
+    function showToast(title, message, type) {
+        const toast = document.createElement("div");
+        toast.className = `alert alert-${type} alert-dismissible fade show`;
+        toast.innerHTML = `
+            <strong>${title}</strong> ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.getElementById("toast-container").appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 5000);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchServicesByCategory();
+
+        document.getElementById("compareButton").addEventListener("click", async () => {
+            await sendInfoToAPI();
+        });
+    });
+</script>
+
+<style>
+    .search-container {
+        margin-bottom: 2rem;
+    }
+
+        .search-container .input-group-text {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .search-container .form-control {
+            border-radius: 0;
+        }
+
+        .search-container .btn {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .search-container .form-control:focus {
+            border-color: #17a2b8;
+            box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+        }
+
+    .no-results {
+        padding: 3rem 1rem;
+    }
+
+    .recommendation-card {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    @@keyframes fadeInUp {
+        to
+
+    {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    }
+
+    .recommendation-card .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .recommendation-card .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
+        }
+
+    .badge-warning {
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        color: #000;
+    }
+
+    .badge-secondary {
+        background: linear-gradient(45deg, #c0c0c0, #e8e8e8);
+        color: #000;
+    }
+
+    .badge-dark {
+        background: linear-gradient(45deg, #cd7f32, #d4a574);
+        color: #fff;
+    }
+
+    .badge-info {
+        background: linear-gradient(45deg, #17a2b8, #20c997);
+        color: #fff;
+    }
+
+    .floating-ai-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 70px;
+        height: 70px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        cursor: pointer;
+        z-index: 1000;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .floating-ai-btn:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .floating-ai-btn:active {
+            transform: translateY(-2px) scale(1.05);
+        }
+
+    .ai-icon {
+        font-size: 28px;
+        z-index: 2;
+        position: relative;
+    }
+
+    .ai-pulse {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%
+
+    {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+
+    }
+
+    @@media (max-width: 768px) {
+        .floating-ai-btn
+
+    {
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+    }
+
+    .ai-icon {
+        font-size: 24px;
+    }
+
+    }
+
+    .spin-logo {
+        animation: spin 2s linear infinite;
+    }
+
+    @@keyframes spin {
+        0%
+
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+    }
+
+    .form-control:focus {
+        border-color: #17a2b8;
+        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+
+    .modal-content {
+        border-radius: 15px;
+    }
+
+    .btn {
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+    .alert-info {
+        background: rgba(23, 162, 184, 0.1);
+        border-color: rgba(23, 162, 184, 0.3);
+    }
+
+    textarea.form-control {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        color: #fff !important;
+    }
+
+        textarea.form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+    .floating-ai-btn[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        right: 80px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+        font-size: 14px;
+        z-index: 1001;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(-50%) translateX(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+
+    }
+    #wizardModal .modal-dialog {
+        max-width: 95%;
+        margin: 0.5rem auto;
+    }
+
+    #wizardModal .modal-body {
+        padding: 1rem;
+        height: auto;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    #recommendationsModal .modal-dialog {
+        max-width: 95%;
+        margin: 0.5rem auto;
+    }
+
+    #recommendationsModal .modal-body {
+        padding: 1rem;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    @@media (max-width: 576px) {
+        #wizardModal .modal-content, #recommendationsModal .modal-content
+
+    {
+        border-radius: 10px;
+    }
+
+    #wizardModal .modal-body,
+    #recommendationsModal .modal-body {
+        max-height: 65vh;
+        padding: 0.75rem;
+    }
+
+    #recommendationsModal .card {
+        margin-bottom: 0.5rem;
+    }
+
+    #recommendationsModal .card-title {
+        font-size: 1.1rem;
+    }
+
+    #recommendationsModal .card-text {
+        font-size: 0.9rem;
+    }
+
+    #recommendationsModal .modal-footer .btn,
+    #wizardModal .modal-footer .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+        #recommendationsModal .modal-footer .btn:last-child,
+        #wizardModal .modal-footer .btn:last-child {
+            margin-bottom: 0;
+        }
+
+    }
+
+    .modal {
+        overflow-x: hidden;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+    }
+
+    @@media (max-width: 768px) {
+        #recommendationsContainer .col-md-12
+
+    {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    }
+</style>

@@ -1,0 +1,765 @@
+﻿﻿@using WEB.ViewModels
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelper
+@model ServicesViewModel
+@{
+    ViewData["Title"] = "Listings";
+    var profileUrl = Url.Action("Profile", "Home");
+    var uploadUrl = Url.Action("UploadProfilePicture", "Users");
+    var loginUrl = Url.Action("LogIn", "Home");
+}
+
+<link rel="stylesheet" href="~/css/Service.css">
+
+<section class="vh-100 d-flex justify-content-center align-items-center">
+    <div class="container py-5 h-100 m-0 d-flex justify-content-center align-items-center">
+        <div class="row d-flex justify-content-center align-items-center h-100 m-0" style="min-width: 95vw;">
+            <div class="col col-xl-12">
+                <div class="card rounded-3 shadow-lg">
+                    <div class="row g-0">
+                        <div class="col-lg-7 d-flex flex-column justify-content-center align-items-center position-relative bg-dark rounded-3">
+                            <!-- Main Carousel -->
+                            <div id="carouselExampleIndicators" class="carousel slide mb-3 w-75" data-bs-ride="carousel">
+                                <div class="carousel-indicators" id="carouselIndicators"></div>
+                                <div class="carousel-inner" id="serviceImages">
+                                    <div class="carousel-item active">
+                                        <img src="" class="d-block w-100" alt="Main Image" style="object-fit: cover;">
+                                    </div>
+                                </div>
+
+                                <!-- Carousel Controls -->
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
+
+                            <!-- Thumbnail Previews (Scrollable) -->
+                            <div class="d-flex overflow-auto justify-content-center w-100" id="imagePreviews" style="max-width: 100%; height: 100px;">
+                                <!-- Thumbnails will be dynamically added here -->
+                            </div>
+                        </div>
+
+                        <div class="col-lg-5">
+                            <div class="card-body p-4 p-lg-5 text-black bg-light">
+                                <h2 id="serviceTitle" class="mb-3 display-5 fw-bold"></h2>
+                                <div class="mb-3 ">
+                                        <p><strong>Продавач:</strong> <span id="serviceProvider"></span> | <strong>Категория:</strong> <span id="serviceCategory"></span></p>
+                                        <p><strong>Телефон за връзка:</strong> <span id="serviceContactPhone"></span></p>
+                                        <p><strong>Местоположение:</strong> <span id="locationFields"></span></p>
+                                    <div class="bg-dark p-2 text-white rounded-2">
+                                        <p><strong>Описание:</strong> <span id="serviceDescription"></span></p>
+                                     </div>
+                                    <h3 class="text-success mt-2 mb-3">Цена: <span id="servicePrice"></span></h3>
+                                </div>
+                                <div class="d-grid gap-2 text-center">
+                                    <button class="btn btn-primary fw-bold" id="messageButton">Съобщение</button>
+                                    <button class="btn btn-success fw-bold" id="requestButton">Заяви</button>
+                                    <button class="btn btn-warning fw-bold" id="favoriteButton">Добави в любими</button>
+                                    <button class="btn btn-danger fw-bold">Докладвай</button>
+                                    <span class="fw-bold fs-4"><img src="/img/AIAnalyzeProduct.png" alt="ChatGPT Logo" id="sendInfoButton" class="ml-2" style="height: 125px;cursor:pointer"><br />AI Асистент</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3 mb-2 bg-dark rounded-2 shadow-lg">
+                    <div class="card-body p-4">
+                        <h4 class="mb-3 text-white">Други обяви от този продавач</h4>
+                        <div class="row row-cols-1 row-cols-md-3 row-cols-lg-3 g-4 overflow-auto" id="userServicesContainer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background-color: transparent; border: none;">
+            <div class="modal-body d-flex justify-content-center align-items-center p-0" style="max-height: 90vh; overflow: hidden;">
+                <img src="" alt="Full Size Image" id="modalImage" class="img-fluid" style="max-width: 100%; max-height: 90vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade h-100" id="loaderBackdrop" tabindex="-1" aria-labelledby="loaderBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-transparent border-0 text-white">
+            <div class="modal-body text-center p-0 d-flex align-items-center justify-content-center h-100">
+                <img src="/img/GptLoader.png" alt="ChatGPT Logo" class="spin-logo" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="analysisModal" tabindex="-1" aria-labelledby="analysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title" id="analysisModalLabel">Анализ на продукта</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <pre class="analysis-body" style="white-space: pre-wrap;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Благодаря!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index: 1100;"></div>
+
+<div class="modal fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white" style="max-height: 700px; height: 100%;">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="chatModalLabel">Чат</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex flex-column" style="height: calc(100vh - 150px); max-height: calc(700px - 80px);">
+                <div id="chatContainer" class="flex-grow-1 overflow-auto border border-secondary rounded p-3"></div>
+                <div class="mt-3 d-flex">
+                    <input type="text" id="messageInput" class="form-control me-2 bg-white text-black border-white" placeholder="Напишете съобщение...">
+                    <button type="button" class="btn btn-primary" id="sendButton">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const loggedInData = getCookie("LoggedInData");
+  
+
+    let serviceID;
+    let pollingInterval;
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const userId = loggedInData.userId;
+        const userType = loggedInData.userType;
+
+        const messageButton = document.getElementById('messageButton');
+
+        messageButton.addEventListener('click', function () {
+            const serviceProviderId = document.getElementById('serviceProvider').dataset.userId;
+            if (!userId || !serviceProviderId) {
+                console.error('User ID or Provider ID is missing.');
+                return;
+            }
+
+            const providerName = document.getElementById('serviceProvider').innerHTML;
+            document.getElementById('chatModalLabel').textContent = `${providerName}`;
+            const chatModalElement = document.getElementById('chatModal');
+            const chatModal = new bootstrap.Modal(chatModalElement);
+            chatModal.show();
+            const chatContainer = document.getElementById('chatContainer');
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 200);
+
+            initializeChat(userId, serviceProviderId);
+
+            chatModalElement.addEventListener('hidden.bs.modal', () => {
+                clearInterval(pollingInterval);
+            });
+        });
+
+        function initializeChat(senderId, receiverId, JWTToken) {
+            const servicesEndpoint = "@Model.ServicesEndpoint";
+            const chatContainer = document.getElementById("chatContainer");
+
+            let senderProfilePicture = "default.png";
+            let receiverProfilePicture = "default.png";
+
+            async function fetchUserProfilePictures() {
+                const JWTToken = getCookie("JWTToken");
+                try {
+                    const senderResponse = await fetch(`${servicesEndpoint}Users/${senderId}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${JWTToken}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    if (senderResponse.ok) {
+                        const senderData = await senderResponse.json();
+                        senderProfilePicture = senderData.profilePicture
+                            ? senderData.profilePicture.split(",")[0].trim()
+                            : "default.png";
+                    }
+
+                    const receiverResponse = await fetch(`${servicesEndpoint}Users/${receiverId}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${JWTToken}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    if (receiverResponse.ok) {
+                        const receiverData = await receiverResponse.json();
+                        receiverProfilePicture = receiverData.profilePicture
+                            ? receiverData.profilePicture.split(",")[0].trim()
+                            : "default.png";
+                    }
+                } catch (error) {
+                    console.error("Error fetching user profile pictures:", error);
+                }
+            }
+
+            fetchUserProfilePictures();
+
+            async function fetchMessages() {
+                const JWTToken = getCookie("JWTToken");
+                try {
+                    const response = await fetch(`${servicesEndpoint}Messages?senderId=${senderId}&receiverId=${receiverId}`, {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${JWTToken}`,
+                            "Content-Type": "application/json",
+                        },
+                    });
+
+                    if (response.ok) {
+                        const messages = await response.json();
+                        displayMessages(messages);
+                    } else {
+                        console.error('Failed to fetch messages:', response.statusText);
+                    }
+                } catch (error) {
+                    console.error('Error fetching messages:', error);
+                }
+            }
+
+
+            async function pollForMessages() {
+                await fetchMessages();
+            }
+
+            fetchMessages();
+            pollingInterval = setInterval(pollForMessages, 1000);
+
+            function displayMessages(messages) {
+                chatContainer.innerHTML = '';
+                messages.forEach(msg => {
+                    const isSender = msg.senderID === senderId;
+                    const profilePicture = isSender ? senderProfilePicture : receiverProfilePicture;
+
+                    chatContainer.innerHTML += `
+                        <div class="d-flex ${isSender ? 'justify-content-end' : 'justify-content-start'} mb-2">
+                            <img src="/profilePictures/${profilePicture}" alt="PPicture" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                            <div class="p-3 rounded-3 ${isSender ? 'bg-primary text-white' : 'bg-secondary text-white'}" style="max-width: 70%;">
+                                <div>${escapeHtml(msg.messageContent)}</div>
+                                <div class="text-muted small mt-1">${new Date(msg.sentOn).toLocaleTimeString()}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                setTimeout(() => {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 200);
+            }
+        }
+
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const servicesEndpoint = "@Model.ServicesEndpoint";
+            const JWTToken = getCookie("JWTToken");
+
+            const messageInput = document.getElementById('messageInput');
+
+            const message = {
+                messageID: '@Guid.NewGuid()',
+                senderID: loggedInData.userId,
+                receiverID: document.getElementById('serviceProvider').dataset.userId,
+                messageContent: messageInput.value,
+                sentOn: new Date(),
+                messageStatus: 0
+            };
+
+            try {
+                const response = await fetch(`${servicesEndpoint}Messages`, {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": `Bearer ${JWTToken}`
+                    },
+                    body: JSON.stringify(message)
+                });
+                if (response.ok) {
+                    messageInput.value = '';
+                } else {
+                    console.error('Failed to send message:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
+        });
+
+        document.getElementById('messageInput').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('sendButton').click();
+            }
+        });
+        
+        const requestButton = document.getElementById('requestButton');
+        if (userType === "Provider") {
+            requestButton.style.display = 'none';
+        } else {
+            requestButton.style.display = 'block';
+        }
+
+        requestButton.addEventListener('click', sendRequestOrder);
+
+        async function sendRequestOrder() {
+            const loggedInData = JSON.parse(getCookie("LoggedInData"));
+            const userId = loggedInData.userId;
+            const providerId = document.getElementById('serviceProvider').dataset.userId;
+            const categoryID = document.getElementById('serviceCategory').dataset.categoryID;
+            const serviceId = getQueryParameter('serviceID');
+            const servicesEndpoint = "@Model.ServicesEndpoint";
+
+            if (!userId || !providerId || !serviceId) {
+                showToast('Error', 'Missing required information for request.', 'danger');
+                return;
+            }
+
+            const orderData = {
+                orderID: '@Guid.NewGuid()',
+                serviceID: serviceId,
+                providerID: providerId,
+                serviceName: document.getElementById('serviceTitle').textContent,
+                categoryID: categoryID,
+                price: parseFloat(document.getElementById('servicePrice').textContent),
+                userID: userId,
+                orderDate: new Date().toISOString(),
+                status: "Requested"
+            };
+
+            try {
+                const response = await fetch(`${servicesEndpoint}OngoingOrders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                if (response.ok) {
+                    showToast('Success', 'Заявката е изпратена усешно.', 'success');
+                } else {
+                    showToast('Error', 'Failed to send request.', 'danger');
+                }
+            } catch (error) {
+                console.error('Error sending request:', error);
+                showToast('Error', 'An error occurred while sending the request.', 'danger');
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!loggedInData || loggedInData.length === 0) {
+            window.location.href = '/Home/LogIn';
+            return;
+        }
+
+        serviceID = getQueryParameter('serviceID');
+
+
+        const categoryName = getQueryParameter('categoryName');
+        if (serviceID) {
+            ensureRatingElementExists();
+            fetchServiceDetails(serviceID);
+            fetchServiceRatings(serviceID);
+        } else {
+            showToast('Error', 'No service ID provided in the URL.', 'danger');
+        }
+    });
+
+    function getQueryParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    async function fetchServiceDetails(serviceID) {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        try {
+            const response = await fetch(`${servicesEndpoint}Services/DTO/${serviceID}`);
+            if (response.ok) {
+                const service = await response.json();
+                displayServiceDetails(service);
+                fetchUserServices(service.services.providerID);
+            } else {
+                console.error('Failed to fetch service:', response.statusText);
+                showToast('Error loading service details', 'Failed to load service details.', 'danger');
+            }
+        } catch (error) {
+            console.error('Error fetching service:', error);
+            showToast('Error loading service details', 'An error occurred while loading service details.', 'danger');
+        }
+    }
+
+    function displayServiceDetails(service) {
+        const serviceTitle = document.getElementById('serviceTitle');
+        const serviceImages = document.getElementById('serviceImages');
+        const carouselIndicators = document.getElementById('carouselIndicators');
+        const imagePreviews = document.getElementById('imagePreviews');
+        const serviceDescription = document.getElementById('serviceDescription');
+        const servicePrice = document.getElementById('servicePrice');
+        const serviceCategory = document.getElementById('serviceCategory');
+        const serviceLocation = document.getElementById('locationFields');
+        const serviceContactPhone = document.getElementById('serviceContactPhone');
+        const serviceProvider = document.getElementById('serviceProvider');
+        const favoriteButton = document.getElementById('favoriteButton');
+
+        serviceProvider.textContent = service.user.userId;
+        serviceProvider.dataset.userId = service.user.userId;
+        serviceTitle.textContent = service.services.serviceName;
+        servicePrice.textContent = service.services.price + 'лв.';
+        serviceCategory.textContent = service.categories.categoryName;
+        serviceCategory.dataset.categoryID = service.categories.categoryID;
+        serviceLocation.textContent = service.services.location;
+        serviceDescription.innerHTML = service.services.description;
+        serviceContactPhone.textContent = service.services.contactPhone;
+
+        const ratingElement = document.createElement('p');
+        ratingElement.id = 'serviceRating';
+        ratingElement.className = 'text-warning mb-1 mt-1';
+        servicePrice.parentNode.insertBefore(ratingElement, servicePrice.nextSibling);
+
+
+
+        serviceImages.innerHTML = '';
+        carouselIndicators.innerHTML = '';
+        imagePreviews.innerHTML = ''; 
+        let images = service.services.images ? service.services.images.split(',') : [];
+
+        if (images.length > 0) {
+            images.forEach((image, index) => {
+                serviceImages.innerHTML += `
+                    <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                        <img src="/serviceImages/${image.trim()}" alt="Image ${index + 1}" class="d-block w-100" style="height: 450px; object-fit: cover;" onclick="openModal('/serviceImages/${image.trim()}')">
+                    </div>`;
+                carouselIndicators.innerHTML += `
+                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="${index}" class="${index === 0 ? 'active' : ''}" aria-current="${index === 0 ? 'true' : 'false'}" aria-label="Slide ${index + 1}"></button>`;
+
+                imagePreviews.innerHTML += `
+                    <div class="flex-shrink-0 p-2">
+                        <img src="/serviceImages/${image.trim()}" alt="Thumbnail ${index + 1}" class="img-thumbnail" style="width: 100px; height: 70px; object-fit: cover; cursor: pointer;" onclick="jumpToCarouselImage(${index})">
+                    </div>`;
+            });
+        }
+
+        favoriteButton.onclick = () => addToFavorites(service.services.serviceID);
+
+        fetchProviderUsername(service.services.providerID).then(username => {
+            serviceProvider.textContent = username || 'Unknown';
+        });
+
+    }
+
+    async function fetchServiceRatings(serviceID) {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        try {
+            const response = await fetch(`${servicesEndpoint}RatingsEntity/${serviceID}`);
+            if (response.ok) {
+                const ratings = await response.json();
+                displayAverageRating(ratings);
+                return ratings;
+            } else {
+                //showToast('Error loading ratings', 'Failed to load service ratings.', 'warning');
+            }
+        } catch (error) {
+            //showToast('Error loading ratings', 'An error occurred while loading service ratings.', 'warning');
+        }
+    }
+
+    function displayAverageRating(ratings) {
+        const ratingElement = document.getElementById('serviceRating');
+        if (!ratingElement) {
+            console.error('Service rating element not found in the DOM');
+            return;
+        }
+
+        if (!ratings || ratings.length === 0) {
+            ratingElement.textContent = 'Няма рейтинг';
+            return;
+        }
+
+        const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+        const averageRating = totalRating / ratings.length;
+        const roundedRating = Math.round(averageRating * 2) / 2; 
+
+        const fullStars = Math.floor(roundedRating);
+        const halfStar = roundedRating % 1 !== 0;
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+        let starsHtml = '';
+        for (let i = 0; i < fullStars; i++) {
+            starsHtml += '<i class="fas fa-star"></i>';
+        }
+        if (halfStar) {
+            starsHtml += '<i class="fas fa-star-half-alt"></i>';
+        }
+        for (let i = 0; i < emptyStars; i++) {
+            starsHtml += '<i class="far fa-star"></i>';
+        }
+
+        ratingElement.innerHTML = `${starsHtml} (${averageRating.toFixed(1)})`;
+    }
+
+    function ensureRatingElementExists() {
+        if (!document.getElementById('serviceRating')) {
+            const priceElement = document.getElementById('servicePrice');
+            if (priceElement && priceElement.parentNode) {
+                const ratingElement = document.createElement('p');
+                ratingElement.id = 'serviceRating';
+                ratingElement.className = 'text-warning mb-3';
+                priceElement.parentNode.insertBefore(ratingElement, priceElement.nextSibling);
+            } else {
+                console.error('Unable to create service rating element: price element not found');
+            }
+        }
+    }
+
+    async function sendInfoToAPI() {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        const serviceTitle = document.getElementById('serviceTitle').textContent;
+        const serviceDescription = document.getElementById('serviceDescription').textContent;
+        const servicePrice = document.getElementById('servicePrice').textContent;
+        const serviceCategory = document.getElementById('serviceCategory').textContent;
+
+        let serviceID = getQueryParameter('serviceID');
+
+        let averageRating = 0;
+
+        const ratings = await fetchServiceRatings(serviceID);
+        if (ratings && ratings.length > 0) {
+            const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+            averageRating = totalRating / ratings.length; 
+        }
+
+
+        const prompt = `Analyze this product for the Bulgarian market:
+        Name: ${serviceTitle}
+        Description: ${serviceDescription}
+        Price: ${servicePrice}
+        Category: ${serviceCategory}
+        Rating: ${averageRating.toFixed(2)} / 5
+        I would like your opinion on the following:
+
+        Is this product good, based on the description and rating?
+        How does the price compare to similar products in Bulgaria?
+        Does this seem like a legitimate and trustworthy offer?
+        How does it stack up to other products or services in this price range?
+        Finally, provide your own rating from 0 to 5, considering all the details provided.
+        Please respond in a friendly and human-like tone and respond in Bulgarian. Use brief explanations for each point, and present the information in a clean, easy-to-read bullet-point format.`;
+
+        const loaderBackdrop = new bootstrap.Modal(document.getElementById('loaderBackdrop'));
+        loaderBackdrop.show();
+
+        try {
+            const response = await fetch(`${servicesEndpoint}ChatGPT`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ prompt: prompt })
+            });
+
+            loaderBackdrop.hide();
+
+            if (response.ok) {
+                const result = await response.text();
+                showAnalysisModal(result);
+            } else {
+                showToast('Error', 'Failed to get analysis from ChatGPT.', 'danger');
+            }
+        } catch (error) {
+            console.error('Error sending info to ChatGPT:', error);
+            loaderBackdrop.hide();
+            showToast('Error', 'An error occurred while analyzing the product.', 'danger');
+        }
+    }
+
+    function showAnalysisModal(analysis) {
+        document.querySelector('.analysis-body').textContent = analysis;
+        const modal = new bootstrap.Modal(document.getElementById('analysisModal'));
+        modal.show();
+    }
+
+    document.getElementById('sendInfoButton').addEventListener('click', sendInfoToAPI);
+
+
+    function jumpToCarouselImage(index) {
+        const carousel = new bootstrap.Carousel(document.getElementById('carouselExampleIndicators'));
+        carousel.to(index);
+    }
+
+    function openModal(imageSrc) {
+        const modalImage = document.getElementById('modalImage');
+        const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+
+        modalImage.src = imageSrc;
+        imageModal.show();
+    }
+
+    async function fetchProviderUsername(providerID) {
+        const JWTToken = getCookie("JWTToken");
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        try {
+            const response = await fetch(`${servicesEndpoint}Users/${providerID}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${JWTToken}`, 
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                return userData.username;
+            } else {
+                console.error('Failed to fetch provider username:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching provider username:', error);
+        }
+        return null;
+    }
+
+    async function fetchUserServices(providerID) {
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        try {
+            const response = await fetch(`${servicesEndpoint}Services/Provider/${providerID}`);
+            if (response.ok) {
+                const services = await response.json();
+                displayUserServices(services);
+            } else {
+                console.error('Failed to fetch user services:', response.statusText);
+                showToast('Error loading user services', 'Failed to load user services.', 'danger');
+            }
+        } catch (error) {
+            console.error('Error fetching user services:', error);
+            showToast('Error loading user services', 'An error occurred while loading user services.', 'danger');
+        }
+    }
+
+    function displayUserServices(services) {
+        const container = document.getElementById('userServicesContainer');
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        container.innerHTML = '';
+        if (services.length === 0) {
+            container.innerHTML = `
+                        <div class="col-12 text-center">
+                            <h5 class="text-muted">Няма други обяви от този потребител</h5>
+                        </div>`;
+        } else {
+            services.forEach(service => {
+                fetch(`${servicesEndpoint}Services/DTO/${service.serviceID}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const categoryName = data.categories.categoryName;
+                        container.innerHTML += `
+                                    <div class="">
+                                        <a href=@Url.Action("Service", "Services")?serviceID=${service.serviceID} class="card-link" style="text-decoration: none; color: inherit;">
+                                            <div class="card shadow-sm h-100" style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                                                    <img src="${service.images && service.images.split(',')[0].trim() !== '' ? '/serviceImages/' + service.images.split(',')[0].trim() : '.../400x300'}" alt="${service.serviceName}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                                                <div class="card-body text-center d-flex flex-column">
+                                                    <h5 class="card-title">${service.serviceName}</h5>
+                                                    <p class="card-text text-muted">${categoryName}</p>
+                                                    <p class="card-text">Цена: ${service.price}лв.</p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>`;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching category name:', error);
+                    });
+            });
+        }
+    }
+
+    function showToast(title, message, type) {
+        const toastContainer = document.getElementById('toastContainer');
+
+        const toast = document.createElement('div');
+        toast.classList.add('toast', 'align-items-center', 'text-white', `bg-${type}`, 'border-0');
+        toast.role = 'alert';
+        toast.ariaLive = 'assertive';
+        toast.ariaAtomic = 'true';
+
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.classList.add('btn-close', 'btn-close-white', 'me-2', 'm-auto');
+        closeButton.ariaLabel = 'Close';
+        closeButton.addEventListener('click', () => {
+            toastContainer.removeChild(toast);
+        });
+
+        const toastBody = document.createElement('div');
+        toastBody.classList.add('toast-body', 'd-flex', 'justify-content-between', 'align-items-center');
+        toastBody.innerText = message;
+
+        toastBody.appendChild(closeButton);
+
+        toast.appendChild(toastBody);
+
+        toastContainer.appendChild(toast);
+
+        const bootstrapToast = new bootstrap.Toast(toast);
+        bootstrapToast.show();
+
+        setTimeout(() => {
+            toastContainer.removeChild(toast);
+        }, 3000); 
+    }
+
+    async function addToFavorites(serviceID) {
+        const loggedInData = JSON.parse(getCookie("LoggedInData"));
+        const userID = loggedInData.userId;
+        const servicesEndpoint = "@Model.ServicesEndpoint";
+        if (!userID) {
+            showToast('Потребителят не е вписан', 'User not logged in or user ID not found in cookies.', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${servicesEndpoint}Favorites/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    favoriteID: '@Guid.NewGuid()',
+                    userID: userID,
+                    serviceID: serviceID
+                })
+            });
+
+            if (response.ok) {
+                showToast('Success', 'Успешно добавено в любими.', 'success');
+            } else {
+                showToast('Error', 'Грешка при добавяне в любими.', 'danger');
+            }
+        } catch (error) {
+            console.error('Error adding service to favorites:', error);
+            showToast('Error', 'An error occurred while adding the service to favorites.', 'danger');
+        }
+    }
+</script>
